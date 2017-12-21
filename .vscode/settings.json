@@ -8,6 +8,7 @@
         "**/node_modules/**"
     ],
     "files.exclude": {
+        ".awcache": true,
         "**/dist/**": false,
         "**/*bundle.*/**": true,
         "**/node_modules/**": true

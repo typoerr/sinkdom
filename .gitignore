@@ -61,6 +61,8 @@ typings/
 .env
 
 ### Project ###
+.awcache
 test/compiled
 dist
 es
+example/*.bundle*
