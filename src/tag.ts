@@ -6,13 +6,19 @@ import { VNode } from './vnode'
 
 export function hh(tagName: string) {
     return tag
-    function tag(props?: Props, ...children: any[]): VNode
     function tag(props: Props): VNode
+    function tag(children: string): VNode
     function tag(children: any[]): VNode
-    function tag(props?: Props, ...children: any[]) {
-        return Array.isArray(props)
-            ? h(tagName, {}, props)
-            : h(tagName, props || {}, children)
+    function tag(props?: Props, children?: string | null | undefined): VNode
+    function tag(props?: Props, children?: any[]): VNode
+    function tag(props?: Props | string, children?: string | null | undefined | any[]) {
+        if (typeof props === 'string') {
+            return h(tagName, {}, props)
+        } else if (Array.isArray(props)) {
+            return h(tagName, {}, props)
+        } else {
+            return h(tagName, props || {}, children)
+        }
     }
 }
 
