@@ -47,7 +47,7 @@ export function createObserver(host: VSinkNode, ctx: Context) {
         }
 
         const $placeholder = host.node as Comment
-        const $parent = $placeholder.parentNode! as Element
+        const $parent = $placeholder.parentNode as Element
         const currentChildren = host.children
         const nextChildren = isVFragmentNode(nextNode) ? nextNode.children : [nextNode]
 
@@ -103,11 +103,12 @@ export function createObserver(host: VSinkNode, ctx: Context) {
                 $parent.removeChild(removeable[i].node!)
             }
             // 新しいnodeの追加処理
+            const offset = Array.from($parent.childNodes).indexOf($placeholder)
             const { children } = ctx.activate(new VFragmentNode(nextChildren))
             const $children = $parent.children
             for (let i = 0; i < children.length; i++) {
                 const vnode = children[i]
-                const node = $children[i]
+                const node = $children[i + offset]
                 if (vnode.node! !== node) {
                     $parent.insertBefore(vnode.node!, node)
                 }

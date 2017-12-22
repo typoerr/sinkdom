@@ -53,8 +53,8 @@ export function mount(tree: VNode, container: HTMLElement = document.body) {
     const dispose = createTreeWalker(
         unsubscribes,
         vnode => invokeNodeHook('drop', vnode),
-        (vnode: any) => delete vnode.subscriptions, // ?
-        vnode => delete vnode.node, // ?
+        // (vnode: any) => delete vnode.subscriptions, // ?
+        // vnode => delete vnode.node, // ?
     )
 
     const context: Context = {
