@@ -1,9 +1,10 @@
 import { isSubject, Subject } from './observable'
 
-export type Listener<T, K extends keyof T> = ((event: T[K]) => void) | Subject<T[K]>
+export type EventListener<T, K extends keyof T> = (Subject<T[K]>) | ((event: T[K]) => void)
 
-export type EventMap = {[K in keyof HTMLElementEventMap]?: Listener<HTMLElementEventMap, K> }
-    & { [k: string]: Listener<{ [k: string]: Event }, any> }
+export type EventMap =
+    | {[K in keyof HTMLElementEventMap]?: EventListener<HTMLElementEventMap, K> }
+    | { [k: string]: EventListener<{ [k: string]: Event }, any> }
 
 const _cache = new WeakMap<object, Function>()
 
@@ -18,7 +19,7 @@ export function getCachedEventListener(subject: Subject<Event>, cache = _cache) 
 
 export function setEventListeners(el: HTMLElement, eventmap: EventMap) {
     for (const event in eventmap) {
-        let listener: any = eventmap[event]
+        let listener: any = (eventmap as any)[event]
         listener = isSubject(listener) ? getCachedEventListener(listener) : listener
         el.addEventListener(event, listener)
     }
