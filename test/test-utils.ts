@@ -11,7 +11,7 @@ export function treeTester() {
         document.body.innerHTML = ''
     }
     function teardown() {
-        return delay(100)
+        return delay(30)
             .then(() => unmount)
             .then(proxy(isFunction, unmount))
             .then(() => unmount = undefined)
