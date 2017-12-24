@@ -1,4 +1,5 @@
 import { flatten } from '@cotto/utils.ts'
+import { Observable } from './observable'
 import { VNode, VElementNode, toVNode } from './vnode'
 import { Props } from './props'
 
@@ -6,21 +7,19 @@ export function h(type: string, props: Props = {}, ...children: any[]): VNode {
     return new VElementNode(type, props, flatten(children, toVNode))
 }
 
+type Children = string | null | undefined | boolean | Observable<any>
+
 // TODO: SVG
 export function hh(tagName: string) {
     return tag
     function tag(props: Props): VNode
-    function tag(children: string): VNode
-    function tag(children: any[]): VNode
-    function tag(props?: Props, children?: string | null | undefined): VNode
-    function tag(props?: Props, children?: any[]): VNode
-    function tag(props?: any, children?: any) {
-        if (typeof props === 'string') {
-            return h(tagName, {}, props)
-        } else if (Array.isArray(props)) {
-            return h(tagName, {}, props)
+    function tag<T extends VNode>(children?: Children | (Children | T)[]): VNode
+    function tag<T extends VNode>(props: Props, children: Children | (Children | T)[]): VNode
+    function tag(arg: any) {
+        if (!!arg && (arg.constructor === Object)) {
+            return h(tagName, ...arguments)
         } else {
-            return h(tagName, props || {}, children || [])
+            return h(tagName, {}, arguments.length <= 0 ? [] : arguments[0])
         }
     }
 }

@@ -1,6 +1,9 @@
 import { h, div } from '../src/h'
+import { Observable } from 'rxjs'
 import { VElementNode, toVNode } from '../src/vnode'
-
+//
+// ─── H ──────────────────────────────────────────────────────────────────────────
+//
 test('empty vnode', () => {
     expect(h('div')).toEqual(new VElementNode('div', {}, []))
 })
@@ -23,14 +26,32 @@ test('with props', () => {
     expect(t).toEqual(r)
 })
 
+//
+// ─── HH ─────────────────────────────────────────────────────────────────────────
+//
 test('empty tag', () => {
     const r = new VElementNode('div', {}, [])
     expect(div()).toEqual(r)
 })
 
 test('tag - with children', () => {
-    expect(div('child')).toEqual(h('div', {}, [toVNode('child')]))
-    expect(div(['child', null])).toEqual(h('div', {}, [toVNode('child'), toVNode(null)]))
+    const obs = Observable.of()
+
+    expect(div('child')).toEqual(h('div', {}, 'child'))
+
+    expect(div(null)).toEqual(h('div', {}, [null]))
+
+    expect(div(undefined)).toEqual(h('div', {}, [undefined]))
+
+    expect(div(true)).toEqual(h('div', {}, [true]))
+
+    expect(div(false)).toEqual(h('div', {}, [false]))
+
+    expect(div(obs)).toEqual(h('div', {}, [obs]))
+
+    expect(div(['hello', 'world'])).toEqual(h('div', {}, 'hello', 'world'))
+
+    expect(div(['hello', obs])).toEqual(h('div', {}, ['hello', obs]))
 })
 
 test('tag - with props', () => {
@@ -38,7 +59,18 @@ test('tag - with props', () => {
 })
 
 test('tag - with props children', () => {
-    expect(div({ key: 'key' }, 'child')).toEqual(h('div', { key: 'key' }, [toVNode('child')]))
-    expect(div({ key: 'key' }, null)).toEqual(h('div', { key: 'key' }, []))
-    expect(div({ key: 'key' }, ['child', null])).toEqual(h('div', { key: 'key' }, [toVNode('child'), toVNode(null)]))
+    const obs = Observable.of()
+    const props = { key: 'key' }
+
+    expect(div(props, 'child')).toEqual(h('div', props, 'child'))
+
+    expect(div(props, null)).toEqual(h('div', props, null))
+
+    expect(div(props, obs)).toEqual(h('div', props, obs))
+
+    expect(div(props, ['child', null, obs]))
+        .toEqual(h('div', props, ['child', null, obs]))
+
+    expect(div(props, [div(obs)]))
+        .toEqual(h('div', props, h('div', {}, obs)))
 })
