@@ -42,7 +42,7 @@
   "keywords": [],
   "scripts": {
     "compile": "npm-run-all compile:*",
-    "compile:esm": "tsc --module es2015 --outDir es --p tsconfig.lib.json",
+    "compile:es": "tsc --module es2015 --outDir es --p tsconfig.lib.json",
     "compile:dist": "tsc --module commonjs --outDir ./ -p tsconfig.lib.json",
     "clean": "run-p clean:**",
     "clean:es": "rimraf es",
@@ -50,8 +50,7 @@
     "start": "tsc -w",
     "start:example": "webpack-dev-server --config ./example/webpack.config.js",
     "prepublish": "run-s clean compile",
-    "_publish": "npm publish --access=public",
-    "release": "xyz --repo git@github.com:cotttpan/sinkdom.git --dry-run --publish-command _publish",
+    "release": "xyz --repo git@github.com:cotttpan/sinkdom.git --dry-run --publish-command 'npm publish --access=public'",
     "test": "NODE_ENV=test jest"
   }
 }
