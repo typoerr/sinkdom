@@ -66,3 +66,4 @@ test/compiled
 dist
 es
 example/*.bundle*
+src/playground.ts

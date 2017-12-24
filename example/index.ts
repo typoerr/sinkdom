@@ -2,7 +2,6 @@
 import { delay } from '@cotto/utils.ts'
 import { Observable, Scheduler, Subject } from 'rxjs'
 import { mount, div, h2, hr, ul, li, p, VNode, button, input } from '../src/index'
-import { Props } from '../src/props'
 
 function now() {
     return new Date().toLocaleString()
@@ -32,10 +31,10 @@ const hook = {
     create(el: HTMLElement, vnode: VNode) {
         console.log('create: ', el, vnode, document.body.contains(el))
     },
-    insert(el: HTMLElement, vnode: VNode) {
+    insert(el: HTMLElement, _vnode: VNode) {
         console.log('insert: ', document.body.contains(el))
     },
-    remove(el: HTMLElement, vnode: VNode, done: Function) {
+    remove(el: HTMLElement, _vnode: VNode, done: Function) {
         el.style.transition = 'all 400ms'
         el.style.color = getRandomColor()
         delay(500).then(done as any)

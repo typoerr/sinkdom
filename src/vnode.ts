@@ -84,15 +84,9 @@ export function isReusedNode(x: VNode) {
     return REUSED in x
 }
 
-export function toReusedNode(vnode: VNode) {
+export function toReusedNode<T extends VNode>(vnode: T) {
     (vnode as any)[REUSED] = true
     return vnode
-}
-
-export function isSameKey(a: VNode, b: VNode) {
-    const ak = a.props.key
-    const bk = b.props.key
-    return ak === bk && ak !== undefined && bk !== undefined
 }
 
 export function getKey(vnode: VNode) {

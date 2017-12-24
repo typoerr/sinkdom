@@ -1,6 +1,6 @@
 import { VNode, VElementNode, VTextNode } from './vnode'
 
-const MARKER = `${String(Math.random()).slice(2)}`
+const MARKER = process.env.NODE_ENV === 'test' ? '' : `${String(Math.random()).slice(2)}`
 
 export function appendChild(vnode: VNode, parent: VNode | null) {
     if (vnode.node && parent && parent.node) {

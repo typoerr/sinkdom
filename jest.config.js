@@ -10,4 +10,7 @@ module.exports = {
         'js',
         'json',
     ],
+    setupFiles: [
+        'mutationobserver-shim',
+    ],
 }
