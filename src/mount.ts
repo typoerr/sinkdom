@@ -11,6 +11,7 @@ import {
     isVCommentNode,
     isVFragmentNode,
     isReusedNode,
+    toVNode,
 } from './vnode'
 import {
     appendChild,
@@ -21,7 +22,7 @@ import {
     createPlaceholder,
 } from './dom'
 import { invokeNodeHook, hasHook } from './lifecycle'
-import { attach, proxy, createTreeWalker, queue, defer } from './utils'
+import { attach, proxy, createTreeWalker, queue, defer, invokeCallback } from './utils'
 import setElementProps from './props-observer'
 import { observeNode, unsubscribes, Context } from './node-observer'
 import { not } from '@cotto/utils.ts'
@@ -34,6 +35,7 @@ const isNotReusedNode = not(isReusedNode)
 // TODO: global hook
 // TODO: option
 export function mount(tree: VNode, container: HTMLElement = document.body) {
+    tree = toVNode(tree)
     const callbacks = queue(defer as any)
 
     const activate = createTreeWalker<VNode, Context>(
@@ -62,7 +64,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body) {
         dispose: (vnode: VNode) => callbacks.enqueue(() => dispose(vnode, null, context)),
     }
 
-    const mo = new MutationObserver(callbacks.process)
+    const mo = new MutationObserver(callbacks.process.bind(null, undefined))
     const config = { childList: true, subtree: true }
 
     mo.observe(container, config)
@@ -70,8 +72,12 @@ export function mount(tree: VNode, container: HTMLElement = document.body) {
     container.appendChild(tree.node!)
 
     return function unmount() {
-        container.removeChild(tree.node!)
-        mo.disconnect()
-        dispose(tree, null, context)
+        const hook = tree.props.hook || {}
+        const onremove = hook.remove || invokeCallback
+        onremove(tree.node as HTMLElement, tree, () => {
+            container.removeChild(tree.node!)
+            dispose(tree, null, context)
+            mo.disconnect()
+        })
     }
 }
