@@ -65,7 +65,7 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
         ) {
             const cur = currentChildren[0] as VTextNode
             const next = nextChildren[0] as VTextNode
-            (cur.value !== next.value) && (cur.node!.nodeValue = next.value)
+            cur.node!.nodeValue = next.value
             cur.value = next.value
         } else /* patch element */ {
             isUpdating = true

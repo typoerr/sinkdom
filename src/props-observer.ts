@@ -19,22 +19,12 @@ export interface PropsObserverContext {
 export function patchify(patch: Patch) {
     return function patcher(vnode: VElementNode, el: HTMLElement, value: ObserveValue, key: string, context: PropsObserverContext) {
         if (isObs(value)) {
-            const s = subscribe(context.proxy(value), observe(patch, el, key))
+            const s = subscribe(context.proxy(value), next => patch(el, next, key))
             vnode.subscriptions.push(s)
         } else if (isPlainObject(value)) {
             for (const k in value) { patcher(vnode, el, value[k], k, context) }
         } else {
             patch(el, value, key)
-        }
-    }
-}
-
-function observe(patch: Patch, el: HTMLElement, key: string) {
-    let current: any
-    return (next: BareValue) => {
-        if (current !== next) {
-            patch(el, next, key)
-            current = next
         }
     }
 }
