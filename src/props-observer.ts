@@ -12,25 +12,19 @@ export interface Patch {
     (el: HTMLElement, value: BareValue, key: string): void
 }
 
-export function patchify(patch: Patch) {
-    return function patcher(vnode: VElementNode, el: HTMLElement, value: ObserveValue, key: string) {
-        if (isObs(value)) {
-            const s = subscribe(value, observe(patch, el, key))
-            vnode.subscriptions.push(s)
-        } else if (isPlainObject(value)) {
-            for (const k in value) { patcher(vnode, el, value[k], k) }
-        } else {
-            patch(el, value, key)
-        }
-    }
+export interface PropsObserverContext {
+    proxy: (value: Observable<any>) => Observable<any>
 }
 
-function observe(patch: Patch, el: HTMLElement, key: string) {
-    let current: any
-    return (next: BareValue) => {
-        if (current !== next) {
-            patch(el, next, key)
-            current = next
+export function patchify(patch: Patch) {
+    return function patcher(vnode: VElementNode, el: HTMLElement, value: ObserveValue, key: string, context: PropsObserverContext) {
+        if (isObs(value)) {
+            const s = subscribe(context.proxy(value), next => patch(el, next, key))
+            vnode.subscriptions.push(s)
+        } else if (isPlainObject(value)) {
+            for (const k in value) { patcher(vnode, el, value[k], k, context) }
+        } else {
+            patch(el, value, key)
         }
     }
 }
@@ -72,22 +66,22 @@ const patches = {
     attr: patchify(setAttr),
 }
 
-export default function setElementProps(vnode: VElementNode) {
+export function setElementProps(vnode: VElementNode, _: any, context: PropsObserverContext) {
     const el = vnode.node! as HTMLElement
     for (const name in vnode.props) {
         const value = vnode.props[name]
         if (name === 'key' || name === 'hook') {
             /* noop */
         } else if (name === 'class' || name === 'className') {
-            patches.classname(vnode, el, value, name)
+            patches.classname(vnode, el, value, name, context)
         } else if (name === 'style') {
-            patches.style(vnode, el, value, name)
+            patches.style(vnode, el, value, name, context)
         } else if (name === 'data') {
-            patches.dataset(vnode, el, value, name)
+            patches.dataset(vnode, el, value, name, context)
         } else if (name === 'on') {
             setEventListeners(el, value)
         } else {
-            patches.attr(vnode, el, value, name)
+            patches.attr(vnode, el, value, name, context)
         }
     }
 }
