@@ -28,13 +28,12 @@ import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
 import { not, identity } from '@cotto/utils.ts'
 import { Options } from './options'
 
-
 type Parent = VNode | null
+type Context = NodeObserverContext & PropsObserverContext
 
 const isNotReusedNode = not(isReusedNode)
 
 // TODO: global hook
-// TODO: option
 export function mount(tree: VNode, container: HTMLElement = document.body, options: Options = {}) {
     tree = toVNode(tree)
     const callbacks = queue(defer as any)
@@ -56,11 +55,9 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     const dispose = createTreeWalker(
         unsubscribes,
         vnode => invokeNodeHook('drop', vnode),
-        // (vnode: any) => delete vnode.subscriptions, // ?
-        // vnode => delete vnode.node, // ?
     )
 
-    const context: NodeObserverContext = {
+    const context: Context = {
         activate: (vnode: VNode) => activate(vnode, null, context, isNotReusedNode),
         dispose: (vnode: VNode) => callbacks.enqueue(() => dispose(vnode, null, context)),
         proxy: options.proxy || identity,

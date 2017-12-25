@@ -32,8 +32,13 @@ export function unsubscribes(vnode: VNode) {
 }
 
 export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
-    // hook.remove完了前にnextNodeが来る可能性を考慮して,
-    // doneが呼ばれるまでの間に来る最新のnextNodeを1つだけbufferとして確保する
+    /*
+     * NextVNode is able to come before callback in the hook.remove is invoked.
+     * In order to reduce unnecessary patch,
+        * skip patch if updating
+        * hold latest one as buffer
+        * patch using bufferd vnode when hook.remove callback is invoked.
+    */
     let buffer: VNode | null = null
     let isUpdating = false
 
@@ -57,22 +62,23 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
             $parent.insertBefore(next.node!, $placeholder.nextSibling)
             host.children = next.children
             isUpdating = false
-        } else if /* patch text to text */ (
+        } else if (
             currentChildren.length === 1
             && nextChildren.length === 1
             && isVTextNode(currentChildren[0])
             && isVTextNode(nextChildren[0])
         ) {
+            /* patch text to text */
             const cur = currentChildren[0] as VTextNode
             const next = nextChildren[0] as VTextNode
             cur.node!.nodeValue = next.value
             cur.value = next.value
-        } else /* patch element */ {
+        } else {
+            /* patch element */
             isUpdating = true
             const queue: Promise<VNode>[] = []
             const reuseable: Hash<VNode> = {}
-            // currentChildrenからkeyを持つものをreuseableに追加
-            // それ以外のnodeはhookを叩いてqueueに追加
+            // split reuseable vnode or removeable vnode
             for (let i = 0; i < currentChildren.length; i++) {
                 const key = getKey(currentChildren[i])
                 if (existy(key)) {
@@ -82,28 +88,26 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
                     queue.push(invokeNodeRemoveHook(currentChildren[i]))
                 }
             }
-            // nextChildren内でreuseableNodeと同じkeyを持つnodeが存在すれば
-            // reuseableNodeに置き換える
+            // replace child to reuseable vnode if props.key is same.
             for (let i = 0; i < nextChildren.length; i++) {
                 const key = getKey(nextChildren[i])
                 if (existy(key) && reuseable[key]) {
                     nextChildren[i] = reuseable[key]
-                    /* 置き換えられたreuseableNodeは削除する */
                     delete reuseable[key]
                 }
             }
-            // 使われなかったreuseableNodeを削除対象としてhookを叩く
+            // remove unused reuseable vnode
             for (const key in reuseable) {
                 queue.push(invokeNodeRemoveHook(reuseable[key]))
             }
-            // remove hookの完了を待つ
+            // await all hook.remove in removeable node
             const removeable = await Promise.all(queue)
-            // nodeの削除と後処理
+            // patch per node
             for (let i = 0; i < removeable.length; i++) {
                 ctx.dispose(removeable[i])
                 $parent.removeChild(removeable[i].node!)
             }
-            // 新しいnodeの追加処理
+
             const offset = Array.from($parent.childNodes).indexOf($placeholder)
             const { children } = ctx.activate(new VFragmentNode(nextChildren))
             const $children = $parent.children
@@ -114,9 +118,9 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
                     $parent.insertBefore(vnode.node!, node)
                 }
             }
-            // 参照を更新
+            // update host
             host.children = children
-            // buffer nodeを片付ける
+            // clean bufflered node
             if (buffer !== null) {
                 let _buffer = buffer
                 buffer = null
