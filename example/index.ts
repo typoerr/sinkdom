@@ -17,10 +17,8 @@ function getRandomColor() {
 }
 
 const now$ = Observable.of(now())
-    .concat(Observable.timer(1000, 1000).take(3).map(now))
-    .distinctUntilChanged()
+    .concat(Observable.timer(1000, 1000).take(10).map(now))
     .shareReplay(1)
-    .observeOn(Scheduler.animationFrame)
 
 const list$ = now$.scan((acc, n) => [...acc, n], [])
     .shareReplay(1)
@@ -120,4 +118,9 @@ const tree = div({ class: 'root', data: { xxxId: 1 } }, [
     hr(),
 ])
 
-mount(tree)
+
+mount(tree, document.body, {
+    proxy: (value: Observable<any>) => value
+        .distinctUntilChanged()
+        .observeOn(Scheduler.animationFrame),
+})

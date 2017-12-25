@@ -1,5 +1,5 @@
 import { existy, Hash } from '@cotto/utils.ts'
-import { subscribe, unsubscribe } from './observable'
+import { subscribe, unsubscribe, Observable } from './observable'
 import {
     VNode,
     VSinkNode,
@@ -14,13 +14,14 @@ import {
 } from './vnode'
 import { invokeNodeRemoveHook } from './lifecycle'
 
-export type Context = {
+export interface NodeObserverContext {
     activate: (vnode: VNode) => VNode,
     dispose: (vnode: VNode) => void,
+    proxy: (observable: Observable<any>) => Observable<any>
 }
 
-export function observeNode(vnode: VSinkNode, _: any, context: Context) {
-    const subscription = subscribe(vnode.source, createObserver(vnode, context))
+export function observeNode(vnode: VSinkNode, _: any, context: NodeObserverContext) {
+    const subscription = subscribe(context.proxy(vnode.source), createObserver(vnode, context))
     vnode.subscriptions.push(subscription)
 }
 
@@ -30,7 +31,7 @@ export function unsubscribes(vnode: VNode) {
     }
 }
 
-export function createObserver(host: VSinkNode, ctx: Context) {
+export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
     // hook.remove完了前にnextNodeが来る可能性を考慮して,
     // doneが呼ばれるまでの間に来る最新のnextNodeを1つだけbufferとして確保する
     let buffer: VNode | null = null
