@@ -34,12 +34,11 @@ type Context = NodeObserverContext & PropsObserverContext
 
 const isNotReusedNode = not(isReusedNode)
 
-// TODO: global hook
 export function mount(tree: VNode, container: HTMLElement = document.body, options: Options = {}) {
     tree = toVNode(tree)
     const callbacks = queue(defer as any)
 
-    const activate = createTreeWalker<VNode, NodeObserverContext & PropsObserverContext>(
+    const activate = createTreeWalker<VNode, Context>(
         proxy<VNode, Parent, NodeObserverContext>(isNotReusedNode,
             proxy<VElementNode, Parent, PropsObserverContext>(isVElementNode, attach('node', createElementNode), setElementProps),
             proxy<VSinkNode, Parent>(isVSinkNode, attach('node', createPlaceholder)),
