@@ -1,3 +1,4 @@
+import { not, identity } from '@cotto/utils.ts'
 import {
     VNode,
     VElementNode,
@@ -25,8 +26,8 @@ import { invokeNodeHook, hasHook } from './lifecycle'
 import { attach, proxy, createTreeWalker, queue, defer, invokeCallback } from './utils'
 import { setElementProps, PropsObserverContext } from './props-observer'
 import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
-import { not, identity } from '@cotto/utils.ts'
 import { Options } from './options'
+import { hookInvoker as globalHookInvoker } from './hook'
 
 type Parent = VNode | null
 type Context = NodeObserverContext & PropsObserverContext
@@ -48,6 +49,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
             appendChild,
             proxy<VSinkNode, Parent, NodeObserverContext>(isVSinkNode, observeNode),
             vnode => invokeNodeHook('create', vnode),
+            globalHookInvoker('create', options.hook || []),
             proxy(hasHook('insert'), vnode => callbacks.enqueue(() => invokeNodeHook('insert', vnode))),
         ),
     )
@@ -55,6 +57,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     const dispose = createTreeWalker(
         unsubscribes,
         vnode => invokeNodeHook('drop', vnode),
+        globalHookInvoker('drop', options.hook || []),
     )
 
     const context: Context = {
