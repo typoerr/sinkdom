@@ -1,4 +1,5 @@
-import { h, div } from '../src/h'
+import { h } from '../src/h'
+import { div } from '../src/hh'
 import { Observable } from 'rxjs'
 import { VElementNode, toVNode } from '../src/vnode'
 //

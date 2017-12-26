@@ -1,4 +1,5 @@
-import { mount, div, VNode, isVNode } from '../src/index'
+import { mount, VNode, isVNode } from '../src/index'
+import { div } from '../src/hh'
 import { hookInvoker } from '../src/hook'
 
 test('hookInvoker', () => {

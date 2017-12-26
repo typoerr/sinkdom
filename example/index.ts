@@ -1,7 +1,8 @@
 /* tslint:disable:no-console */
 import { delay } from '@cotto/utils.ts'
 import { Observable, Scheduler, Subject } from 'rxjs'
-import { mount, div, h2, hr, ul, li, p, VNode, button, input } from '../src/index'
+import { mount, VNode } from '../src/index'
+import { div, h2, hr, ul, li, p, button, input } from '../src/hh'
 
 function now() {
     return new Date().toLocaleString()
