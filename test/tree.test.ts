@@ -2,8 +2,7 @@ import { Observable } from 'rxjs'
 import { delay } from '@cotto/utils.ts'
 import { html } from '../src/utils'
 import { treeTester } from './test-utils'
-import { mount, isReusedNode } from '../src/index'
-import { div, ul, li } from '../src/hh'
+import { mount, isReusedNode, div, li, ul } from '../src/index'
 
 const $placeholder = html`<!--{{placeholder-}}-->`
 const $comment = html`<!--{{}}-->`

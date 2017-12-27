@@ -2,8 +2,7 @@ import { Observable, Subject } from 'rxjs'
 import { delay } from '@cotto/utils.ts'
 import { html } from '../src/utils'
 import { treeTester } from './test-utils'
-import { mount, VNode, isVElementNode } from '../src/index'
-import { div, input } from '../src/hh'
+import { div, input, mount, VNode, isVElementNode } from '../src/index'
 
 const { setup, teardown, testTree } = treeTester()
 
