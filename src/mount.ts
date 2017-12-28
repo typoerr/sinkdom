@@ -65,10 +65,10 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         proxy: options.proxy || identity,
     }
 
-    const mo = new MutationObserver(callbacks.process.bind(null, undefined))
-    const config = { childList: true, subtree: true }
+    const ps = callbacks.process.bind(null, undefined)
+    const mo = new MutationObserver(require('debounce')(ps, 300))
+    mo.observe(container, { childList: true, subtree: true })
 
-    mo.observe(container, config)
     tree = activate(tree, null, context)
     container.appendChild(tree.node!)
 
