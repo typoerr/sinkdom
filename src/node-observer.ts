@@ -1,16 +1,18 @@
-import { existy, Hash } from '@cotto/utils.ts'
-import { subscribe, unsubscribe, Observable } from './observable'
+import { Hash } from '@cotto/utils.ts'
+import { subscribe, Observable, Subscription } from './observable'
 import {
     VNode,
     VSinkNode,
     VFragmentNode,
+    VTextNode,
+    VElementNode,
+    VFakeNode,
     isVTextNode,
     isVFragmentNode,
     hasSubscriptions,
     toVNode,
-    getKey,
     toReusedNode,
-    VTextNode,
+    getKey,
 } from './vnode'
 import { invokeNodeRemoveHook } from './lifecycle'
 
@@ -21,17 +23,25 @@ export interface NodeObserverContext {
 }
 
 export function observeNode(vnode: VSinkNode, _: any, context: NodeObserverContext) {
-    const subscription = subscribe(context.proxy(vnode.source), createObserver(vnode, context))
-    vnode.subscriptions.push(subscription)
+    vnode.subscriptions.push(subscribe(
+        context.proxy(vnode.source),
+        observe(vnode, context),
+    ))
 }
 
 export function unsubscribes(vnode: VNode) {
+    let s: Subscription
     if (hasSubscriptions(vnode)) {
-        vnode.subscriptions.forEach(unsubscribe)
+        const { subscriptions } = vnode
+        // tslint:disable:no-conditional-assignment
+        while (s = subscriptions.shift()!) {
+            s.unsubscribe()
+        }
+        // tslint:enabel:no-conditional-assignment
     }
 }
 
-export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
+export function observe(host: VSinkNode, ctx: NodeObserverContext) {
     /*
      * NextVNode is able to come before callback in the hook.remove is invoked.
      * In order to reduce unnecessary patch,
@@ -80,25 +90,25 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
             const reuseable: Hash<VNode> = {}
             // split reuseable vnode or removeable vnode
             for (let i = 0; i < currentChildren.length; i++) {
-                const key = getKey(currentChildren[i])
-                if (existy(key)) {
-                    const vnode = currentChildren[i]
+                const vnode = currentChildren[i]
+                const key = getKey(vnode)
+                if (key != undefined) {
                     reuseable[key] = toReusedNode(vnode)
                 } else {
-                    queue.push(invokeNodeRemoveHook(currentChildren[i]))
+                    queue.push(invokeNodeRemoveHook(vnode as VElementNode))
                 }
             }
             // replace child to reuseable vnode if props.key is same.
             for (let i = 0; i < nextChildren.length; i++) {
                 const key = getKey(nextChildren[i])
-                if (existy(key) && reuseable[key]) {
-                    nextChildren[i] = reuseable[key]
-                    delete reuseable[key]
+                if (reuseable[key!]) {
+                    nextChildren[i] = reuseable[key!]
+                    delete reuseable[key!]
                 }
             }
             // remove unused reuseable vnode
             for (const key in reuseable) {
-                queue.push(invokeNodeRemoveHook(reuseable[key]))
+                queue.push(invokeNodeRemoveHook(reuseable[key] as VElementNode))
             }
             // await all hook.remove in removeable node
             const removeable = await Promise.all(queue)
@@ -109,7 +119,7 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
             }
 
             const offset = Array.from($parent.childNodes).indexOf($placeholder)
-            const { children } = ctx.activate(new VFragmentNode(nextChildren))
+            const { children } = ctx.activate(new VFakeNode(nextChildren.map(toVNode)))
             const $children = $parent.children
             for (let i = 0; i < children.length; i++) {
                 const vnode = children[i]
@@ -119,12 +129,12 @@ export function createObserver(host: VSinkNode, ctx: NodeObserverContext) {
                 }
             }
             // update host
-            host.children = children
+            host.children = children || []
             // clean bufflered node
             if (buffer !== null) {
                 let _buffer = buffer
                 buffer = null
-                await patch(_buffer, true)
+                patch(_buffer, true)
             } else {
                 isUpdating = false
             }

@@ -39,15 +39,15 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     const callbacks = queue(defer as any)
 
     const activate = createTreeWalker<VNode, Context>(
-        proxy<VNode, Parent, NodeObserverContext>(isNotReusedNode,
-            proxy<VElementNode, Parent, PropsObserverContext>(isVElementNode, attach('node', createElementNode), setElementProps),
-            proxy<VSinkNode, Parent>(isVSinkNode, attach('node', createPlaceholder)),
-            proxy<VTextNode, Parent>(isVTextNode, attach('node', createTextNode)),
-            proxy<VCommentNode, Parent>(isVCommentNode, attach('node', createComment)),
-            proxy<VFragmentNode, Parent>(isVFragmentNode, attach('node', createFrangment)),
+        proxy<VNode, Parent, Context>(isNotReusedNode,
+            proxy<VElementNode, Parent, Context>(isVElementNode, attach('node', createElementNode), setElementProps),
+            proxy<VSinkNode, Parent, Context>(isVSinkNode, attach('node', createPlaceholder)),
+            proxy<VTextNode, Parent, Context>(isVTextNode, attach('node', createTextNode)),
+            proxy<VCommentNode, Parent, Context>(isVCommentNode, attach('node', createComment)),
+            proxy<VFragmentNode, Parent, Context>(isVFragmentNode, attach('node', createFrangment)),
             appendChild,
-            proxy<VSinkNode, Parent, NodeObserverContext>(isVSinkNode, observeNode),
-            vnode => invokeNodeHook('create', vnode),
+            proxy<VSinkNode, Parent, Context>(isVSinkNode, observeNode),
+            vnode => invokeNodeHook('create', vnode as VElementNode),
             globalHookInvoker('create', options.hook || []),
             proxy(hasHook('insert'), vnode => callbacks.enqueue(() => invokeNodeHook('insert', vnode))),
         ),
@@ -55,7 +55,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
 
     const dispose = createTreeWalker(
         unsubscribes,
-        vnode => invokeNodeHook('drop', vnode),
+        vnode => invokeNodeHook('drop', vnode as VElementNode),
         globalHookInvoker('drop', options.hook || []),
     )
 
@@ -75,7 +75,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     return function unmount() {
         const hook = tree.props.hook || {}
         const onremove = hook.remove || invokeCallback
-        onremove(tree.node as HTMLElement, tree, () => {
+        onremove(tree.node as HTMLElement, tree as VElementNode, () => {
             container.removeChild(tree.node!)
             dispose(tree, null, context)
             mo.disconnect()

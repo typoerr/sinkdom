@@ -16,7 +16,7 @@ export function hh(tagName: string) {
     function tag<T extends VNode>(children?: Children | (Children | T)[]): VNode
     function tag<T extends VNode>(props: Props, children: Children | (Children | T)[]): VNode
     function tag(arg: any) {
-        if (!!arg && (arg.constructor === Object)) {
+        if (arg != undefined && arg.constructor === Object) {
             return h(tagName, ...arguments)
         } else {
             return h(tagName, {}, arguments.length <= 0 ? [] : arguments[0])
