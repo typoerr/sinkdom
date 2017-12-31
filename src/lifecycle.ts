@@ -1,20 +1,20 @@
-import { VNode } from './vnode'
+import { VElementNode } from './vnode'
 
-export interface Lifecycle<T extends HTMLElement = HTMLElement, U extends VNode = VNode> {
-    create?(el: T, vnode: U): void
-    insert?(el: T, vnode: U): void
-    remove?(el: T, vnode: U, done: Function): void
-    drop?(el: T, vnode: U): void
+export interface Lifecycle<T extends HTMLElement = HTMLElement> {
+    create?(el: T, vnode: VElementNode): void
+    insert?(el: T, vnode: VElementNode): void
+    remove?(el: T, vnode: VElementNode, done: Function): void
+    drop?(el: T, vnode: VElementNode): void
 }
 
-export function invokeNodeHook<K extends keyof Lifecycle>(key: K, vnode: VNode, done?: Function) {
+export function invokeNodeHook<K extends keyof Lifecycle>(key: K, vnode: VElementNode, done?: Function) {
     const hook = vnode.props.hook && vnode.props.hook[key]
     if (typeof hook === 'function') {
         hook(vnode.node!, vnode, done)
     }
 }
 
-export async function invokeNodeRemoveHook(vnode: VNode): Promise<VNode> {
+export async function invokeNodeRemoveHook(vnode: VElementNode): Promise<VElementNode> {
     const hook = vnode.props.hook || {}
     const onremove = hook.remove
     const el = vnode.node as HTMLElement
@@ -25,8 +25,8 @@ export async function invokeNodeRemoveHook(vnode: VNode): Promise<VNode> {
 }
 
 export function hasHook<K extends keyof Lifecycle>(key: K) {
-    return (vnode: VNode) => {
+    return (vnode: VElementNode) => {
         const hook = vnode.props.hook
-        return !!hook && typeof hook[key] === 'function'
+        return hook != undefined && typeof hook[key] === 'function'
     }
 }

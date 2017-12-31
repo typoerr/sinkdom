@@ -1,83 +1,115 @@
-import { isString, isNumber } from '@cotto/utils.ts'
 import { isObs, Observable, Subscription } from './observable'
 import { Props } from './props'
 
 const REUSED = Symbol('REUSED')
 
-export abstract class VNode {
-    type: string
-    props: Props = {}
-    children: VNode[] = []
+export enum VNodeType {
+    Element,
+    Comment,
+    Text,
+    Fragment,
+    Fake,
+    Sink,
+}
+
+export interface VNode {
+    readonly vnodeType: VNodeType
+    readonly type: string
+    props: Props
+    children: VNode[]
     node?: Node
 }
 
-export class VElementNode extends VNode {
+export class VElementNode implements VNode {
+    vnodeType = VNodeType.Element
+    type: string
+    props: Props
+    children: VNode[]
+    node?: HTMLElement
     subscriptions: Subscription[] = []
     constructor(type: string, props: Props, children: VNode[]) {
-        super()
         this.type = type
-        this.props = props
-        this.children = children
+        this.props = props || {}
+        this.children = children || []
     }
 }
 
-export class VSinkNode extends VNode {
+export class VSinkNode implements VNode {
+    vnodeType = VNodeType.Sink
     type = 'sink'
+    props: Props = {}
+    children: VNode[] = []
+    node?: Comment
     source: Observable<any>
     subscriptions: Subscription[] = []
-    node?: Comment // placeholder
     constructor(source: Observable<any>) {
-        super()
         this.source = source
     }
 }
 
-export class VTextNode extends VNode {
+export class VTextNode implements VNode {
+    vnodeType = VNodeType.Text
     type = 'text'
+    props = {}
+    children = []
     value: string
     node?: Text
     constructor(text: string) {
-        super()
         this.value = text
     }
 }
 
-export class VCommentNode extends VNode {
+export class VCommentNode implements VNode {
+    vnodeType = VNodeType.Comment
     type = 'comment'
+    props = {}
+    children = []
     node?: Comment
 }
 
-export class VFragmentNode extends VNode {
+export class VFragmentNode implements VNode {
+    vnodeType = VNodeType.Fragment
     type = 'fragment'
+    props = {}
+    children: VNode[]
     node?: DocumentFragment
     constructor(children: VNode[]) {
-        super()
         this.children = children
     }
 }
 
-export function isVNode(x: any): x is VNode {
-    return x instanceof VNode
+export class VFakeNode implements VNode {
+    vnodeType = VNodeType.Fake
+    type = 'fake'
+    props = {}
+    children: VNode[]
+    constructor(children: VNode[]) {
+        this.children = children
+    }
 }
 
-export function isVElementNode(x: any): x is VElementNode {
-    return x instanceof VElementNode
+export function isVNode(vnode: any): vnode is VNode {
+    return vnode != undefined && vnode.vnodeType != undefined
 }
 
-export function isVSinkNode(x: any): x is VSinkNode {
-    return x instanceof VSinkNode
+export function isVElementNode(vnode: any): vnode is VElementNode {
+    return vnode != undefined && vnode.vnodeType === VNodeType.Element
 }
 
-export function isVTextNode(x: any): x is VTextNode {
-    return x instanceof VTextNode
+export function isVSinkNode(vnode: any): vnode is VSinkNode {
+    return vnode != undefined && vnode.vnodeType === VNodeType.Sink
 }
 
-export function isVCommentNode(x: any): x is VCommentNode {
-    return x instanceof VCommentNode
+export function isVTextNode(vnode: any): vnode is VTextNode {
+    return vnode != undefined && vnode.vnodeType === VNodeType.Text
 }
 
-export function isVFragmentNode(x: any): x is VFragmentNode {
-    return x instanceof VFragmentNode
+export function isVCommentNode(vnode: any): vnode is VCommentNode {
+    return vnode != undefined && vnode.vnodeType === VNodeType.Comment
+}
+
+export function isVFragmentNode(vnode: any): vnode is VFragmentNode {
+    return vnode != undefined && vnode.vnodeType === VNodeType.Fragment
 }
 
 export function isReusedNode(x: VNode) {
@@ -85,7 +117,7 @@ export function isReusedNode(x: VNode) {
 }
 
 export function toReusedNode<T extends VNode>(vnode: T) {
-    (vnode as any)[REUSED] = true
+    (vnode as any)[REUSED] = REUSED
     return vnode
 }
 
@@ -100,12 +132,12 @@ export function hasSubscriptions(vnode: VNode): vnode is VNode & { subscriptions
 export function toVNode(x: any): VNode {
     if (isVNode(x)) {
         return x
-    } else if (isString(x) || isNumber(x)) {
+    } else if (isObs(x)) {
+        return new VSinkNode(x)
+    } else if (typeof x === 'string' || typeof x === 'number') {
         return new VTextNode(String(x))
     } else if (Array.isArray(x)) {
         return new VFragmentNode(x.map(toVNode))
-    } else if (isObs(x)) {
-        return new VSinkNode(x)
     } else {
         return new VCommentNode()
     }

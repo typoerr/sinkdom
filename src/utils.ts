@@ -27,18 +27,22 @@ export function proxy<A>(filter: Func1<A, boolean>, ...funcs: Func1<A, any>[]): 
 export function proxy<A1, A2>(filter: Func2<A1, A2, boolean>, ...funcs: Func2<A1, A2, any>[]): Func2<any, any, void>
 export function proxy<A1, A2, A3>(filter: Func3<A1, A2, A3, boolean>, ...funcs: Func3<A1, A2, A3, any>[]): Func3<any, any, any, void>
 export function proxy(filter: Function, ...funcs: Function[]) {
-    return function (this: any) {
-        if (filter.apply(this, arguments)) {
+    // 速度を出すためにあえて引数を3に固定している
+    // https://jsperf.com/apply-vs-call-vs-invoke/40
+    return function (a: any, b: any, c: any) {
+        if (filter(a, b, c)) {
             for (let i = 0; i < funcs.length; i++) {
-                funcs[i].apply(this, arguments)
+                funcs[i](a, b, c)
             }
         }
     }
 }
 
-export function attach<T, K extends keyof T>(key: K, creator: (value: T, ...extra: any[]) => T[K]) {
-    return function (this: any, value: T, ..._extra: any[]) {
-        value[key] = creator.apply(this, arguments)
+export function attach<T, K extends keyof T>(key: K, creator: (value: T, a?: any, b?: any) => T[K]) {
+    // 速度を出すためにあえて引数を3に固定している
+    // https://jsperf.com/apply-vs-call-vs-invoke/40
+    return function (value: T, a?: any, b?: any) {
+        value[key] = creator(value, a, b)
         return value
     }
 }
