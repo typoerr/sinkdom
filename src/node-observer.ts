@@ -6,7 +6,6 @@ import {
     VFragmentNode,
     VTextNode,
     VElementNode,
-    VFakeNode,
     isVTextNode,
     isVFragmentNode,
     hasSubscriptions,
@@ -112,14 +111,20 @@ export function observe(host: VSinkNode, ctx: NodeObserverContext) {
             }
             // await all hook.remove in removeable node
             const removeable = await Promise.all(queue)
+            /*
+             * domを更新する前にbufferの存在を確認
+             * 存在すれば処理をdom patchを切り上げてbufferを処理したほうが速くなるか？
+             *
+            */
             // patch per node
             for (let i = 0; i < removeable.length; i++) {
                 ctx.dispose(removeable[i])
                 $parent.removeChild(removeable[i].node!)
             }
 
-            const offset = Array.from($parent.childNodes).indexOf($placeholder)
-            const { children } = ctx.activate(new VFakeNode(nextChildren.map(toVNode)))
+            const offset = Array.prototype.indexOf.call($parent.childNodes, $placeholder)
+            // const { children } = ctx.activate(new VFakeNode(nextChildren.map(toVNode)))
+            const children = nextChildren.map(ctx.activate)
             const $children = $parent.children
             for (let i = 0; i < children.length; i++) {
                 const vnode = children[i]
@@ -129,7 +134,7 @@ export function observe(host: VSinkNode, ctx: NodeObserverContext) {
                 }
             }
             // update host
-            host.children = children || []
+            host.children = children
             // clean bufflered node
             if (buffer !== null) {
                 let _buffer = buffer
