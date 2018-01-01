@@ -122,5 +122,6 @@ const tree = div({ class: 'root', data: { xxxId: 1 } }, [
 mount(tree, document.body, {
     proxy: (value: Observable<any>) => value
         .distinctUntilChanged()
-        .observeOn(Scheduler.animationFrame),
+        .observeOn(Scheduler.animationFrame)
+        .subscribeOn(Scheduler.animationFrame),
 })
