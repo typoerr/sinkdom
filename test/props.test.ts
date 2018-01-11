@@ -14,7 +14,7 @@ afterEach(teardown)
 //
 describe('className', () => {
     const a$ = Observable.of('a')
-    const b$ = Observable.of('b').delay(10).startWith('')
+    const b$ = Observable.of('b').delay(5).startWith('')
     const name$ = Observable.combineLatest(a$, b$, (a, b) => a + ' ' + b)
 
     testTree('static class', () => ({
@@ -36,7 +36,7 @@ describe('className', () => {
 //
 describe('style', () => {
     const bgcolor$ = Observable.of('red')
-        .concat(Observable.of('blue').delay(10))
+        .concat(Observable.of('blue').delay(5))
 
     testTree('static style', () => ({
         tree: div({ style: { background: 'red', fontSize: '12px' } }),
@@ -53,7 +53,7 @@ describe('style', () => {
 //
 describe('dataset', () => {
     const xId$ = Observable.of('a')
-        .concat(Observable.of('b').delay(10))
+        .concat(Observable.of('b').delay(5))
 
     testTree('static dataset', () => ({
         tree: div({ data: { xId: 'a' } }),
@@ -77,7 +77,7 @@ describe('dom props', () => {
     })
 
     test('observable value', async () => {
-        const value$ = Observable.of('a').concat(Observable.of('b').delay(10))
+        const value$ = Observable.of('a').concat(Observable.of('b').delay(5))
         const tree = input({ value: value$ })
         const unmount = mount(tree)
         await value$.delay(1)
@@ -93,7 +93,7 @@ describe('dom props', () => {
 //
 describe('attribute', () => {
     const id$ = Observable.of('a')
-        .concat(Observable.of('b').delay(10))
+        .concat(Observable.of('b').delay(5))
 
     testTree('static dataset', () => ({
         tree: div({ id: 'a' }),

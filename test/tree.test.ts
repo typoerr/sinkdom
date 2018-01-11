@@ -62,7 +62,7 @@ describe('node', () => {
 
 describe('list', () => {
     const list$ = Observable.of(['a', 'b', 'c', 'd'])
-        .concat(Observable.of(['b', 'a', 'd', 'c']).delay(5))
+        .concat(Observable.of(['b', 'a', 'd', 'c']).delay(10))
         .shareReplay(1)
 
     testTree('static list', () => ({
