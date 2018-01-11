@@ -57,6 +57,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         unsubscribes,
         vnode => invokeNodeHook('drop', vnode as VElementNode),
         globalHookInvoker('drop', options.hook || []),
+        vnode => vnode.node = undefined,
     )
 
     const context: Context = {
