@@ -24,9 +24,7 @@ export function treeTester() {
             const { tree, result } = block()
             const result$ = (typeof result === 'string' ? Observable.of(result) : result)
             unmount = mount(tree)
-            return result$.do(evaluate)
-                // .do(() => console.log(document.body.innerHTML))
-                .toPromise()
+            return result$.do(evaluate).toPromise()
         })
     }
 }

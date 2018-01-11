@@ -18,7 +18,7 @@ import {
     appendChild,
     createElementNode,
     createTextNode,
-    createComment,
+    createMarkerComment,
     createFrangment,
     createPlaceholder,
 } from './dom'
@@ -43,7 +43,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
             proxy<VElementNode, Parent, Context>(isVElementNode, attach('node', createElementNode), setElementProps),
             proxy<VSinkNode, Parent, Context>(isVSinkNode, attach('node', createPlaceholder)),
             proxy<VTextNode, Parent, Context>(isVTextNode, attach('node', createTextNode)),
-            proxy<VCommentNode, Parent, Context>(isVCommentNode, attach('node', createComment)),
+            proxy<VCommentNode, Parent, Context>(isVCommentNode, attach('node', createMarkerComment)),
             proxy<VFragmentNode, Parent, Context>(isVFragmentNode, attach('node', createFrangment)),
             appendChild,
             proxy<VSinkNode, Parent, Context>(isVSinkNode, observeNode),
@@ -57,6 +57,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         unsubscribes,
         vnode => invokeNodeHook('drop', vnode as VElementNode),
         globalHookInvoker('drop', options.hook || []),
+        vnode => vnode.node = undefined,
     )
 
     const context: Context = {
@@ -66,7 +67,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     }
 
     const ps = callbacks.process.bind(null, undefined)
-    const mo = new MutationObserver(require('debounce')(ps, 300))
+    const mo = new MutationObserver(ps)
     mo.observe(container, { childList: true, subtree: true })
 
     tree = activate(tree, null, context)
@@ -78,7 +79,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         onremove(tree.node as HTMLElement, tree as VElementNode, () => {
             container.removeChild(tree.node!)
             dispose(tree, null, context)
-            mo.disconnect()
+            defer(mo.disconnect.bind(mo))
         })
     }
 }

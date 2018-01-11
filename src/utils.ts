@@ -6,7 +6,6 @@ export const defer: <R>(f: Func0<R>) => Promise<R> = Promise.resolve()
 export function toKebabCase(s: string) {
     return s.replace(/[A-Z]/g, _tokebabe)
 }
-
 function _tokebabe(s: string, offset: number) {
     s = s.toLowerCase()
     return offset <= 0 ? s : '-' + s
@@ -27,22 +26,18 @@ export function proxy<A>(filter: Func1<A, boolean>, ...funcs: Func1<A, any>[]): 
 export function proxy<A1, A2>(filter: Func2<A1, A2, boolean>, ...funcs: Func2<A1, A2, any>[]): Func2<any, any, void>
 export function proxy<A1, A2, A3>(filter: Func3<A1, A2, A3, boolean>, ...funcs: Func3<A1, A2, A3, any>[]): Func3<any, any, any, void>
 export function proxy(filter: Function, ...funcs: Function[]) {
-    // 速度を出すためにあえて引数を3に固定している
-    // https://jsperf.com/apply-vs-call-vs-invoke/40
-    return function (a: any, b: any, c: any) {
-        if (filter(a, b, c)) {
+    return function (this: any) {
+        if (filter.apply(this, arguments)) {
             for (let i = 0; i < funcs.length; i++) {
-                funcs[i](a, b, c)
+                funcs[i].apply(this, arguments)
             }
         }
     }
 }
 
 export function attach<T, K extends keyof T>(key: K, creator: (value: T, a?: any, b?: any) => T[K]) {
-    // 速度を出すためにあえて引数を3に固定している
-    // https://jsperf.com/apply-vs-call-vs-invoke/40
-    return function (value: T, a?: any, b?: any) {
-        value[key] = creator(value, a, b)
+    return function (this: any, value: T, ..._extra: any[]) {
+        value[key] = creator.apply(this, arguments)
         return value
     }
 }
@@ -50,24 +45,26 @@ export function attach<T, K extends keyof T>(key: K, creator: (value: T, a?: any
 export interface Visitor<T, C = any, R = any> {
     (node: T, parent: T | null, context?: C): R
 }
-
 export interface Director<T, C> extends Visitor<T, C, boolean> {
     /*  */
 }
-
 export interface Walker<T, C = any> {
     (node: T, parent: T | null, context?: C, director?: Director<T, C>): T
 }
-
-export function createTreeWalker<T extends { children: T[] }, C = any>(...visitor: Visitor<T, C>[]): Walker<T, C> {
-    return function walk(node, parent, context = undefined, director = constant(true)) {
-        const children = node.children
-        for (let i = 0; i < visitor.length; i++) {
+export interface Node<T> {
+    children: T[]
+}
+export function createTreeWalker<T extends Node<T>, C = any>(...visitor: Visitor<T, C>[]): Walker<T, C> {
+    const len = visitor.length
+    const _director = constant(true)
+    return function walk(node, parent, context = undefined, director = _director) {
+        const ch = node.children
+        for (let i = 0; i < len; i++) {
             visitor[i](node, parent, context)
-        }
-        if (director(node, parent, context)) {
-            for (let i = 0; i < children.length; i++) {
-                walk(children[i], node, context, director)
+            if (director(node, parent, context)) {
+                for (let j = 0; j < ch.length; j++) {
+                    walk(ch[j], node, context, director)
+                }
             }
         }
         return node

@@ -1,5 +1,4 @@
 import { Observable } from 'rxjs'
-import { delay } from '@cotto/utils.ts'
 import { html } from '../src/utils'
 import { treeTester } from './test-utils'
 import { mount, isReusedNode, div, li, ul } from '../src/index'
@@ -13,7 +12,7 @@ beforeEach(setup)
 afterEach(teardown)
 
 describe('text', () => {
-    const text$ = Observable.of('a').concat(Observable.of('b').delay(10))
+    const text$ = Observable.of('a').concat(Observable.of('b').delay(5))
 
     testTree('static text', () => ({
         tree: 'text' as any,
@@ -31,7 +30,7 @@ describe('text', () => {
 
 describe('node', () => {
     const text$ = Observable.of('text')
-        .concat(Observable.of('text2').delay(10))
+        .concat(Observable.of('text2').delay(5))
 
     testTree('static node', () => ({
         tree: div('text'),
@@ -63,7 +62,7 @@ describe('node', () => {
 
 describe('list', () => {
     const list$ = Observable.of(['a', 'b', 'c', 'd'])
-        .concat(Observable.of(['b', 'a', 'd', 'c']).delay(10))
+        .concat(Observable.of(['b', 'a', 'd', 'c']).delay(5))
         .shareReplay(1)
 
     testTree('static list', () => ({
@@ -78,8 +77,10 @@ describe('list', () => {
     }))
     testTree('observable list', () => ({
         tree: ul([
-            list$.concatMap(x =>
-                Observable.from(x).map(li).toArray()),
+            list$.concatMap(x => Observable.from(x)
+                .map(li)
+                .toArray(),
+            ),
         ]),
         result: list$.delay(1).map(list => html`
             <ul>
@@ -91,8 +92,9 @@ describe('list', () => {
 
     testTree('observable keyed list', () => ({
         tree: ul({}, [
-            list$.concatMap(x =>
-                Observable.from(x).map(n => li({ key: n }, n)).toArray(),
+            list$.concatMap(x => Observable.from(x)
+                .map(n => li({ key: n }, n))
+                .toArray(),
             ),
         ]),
         result: list$.delay(1).map(list => html`
@@ -119,60 +121,36 @@ describe('comment', () => {
 
 describe('reuse node', () => {
     test('non-keyed list is not resused', async () => {
-        let unmount: any
+        expect.assertions(4)
 
         const list$ = Observable.of(['a', 'b', 'c', 'd'])
-            .concat(Observable.of(['b', 'a', 'd', 'c']).delay(50))
+            .concat(Observable.of(['b', 'a', 'd', 'c']).delay(5))
+            .concatMap(x => Observable.from(x).map(li).toArray())
+        const tree = ul([list$])
+        const unmount = mount(tree)
 
-        const tree = ul([
-            list$.concatMap(x =>
-                Observable.from(x).map(li).toArray(),
-            ),
-        ])
+        const list = await list$.toPromise().then(() => tree.children[0].children)
 
-        unmount = mount(tree)
-
-        const a = tree.children[0].children
-
-        await delay(60)
-
-        const b = tree.children[0].children
-
-        b.forEach(vnode => expect(isReusedNode(vnode)).toBe(false))
-        expect(a[0].node).not.toBe(b[1].node)
-        expect(a[1].node).not.toBe(b[0].node)
-        expect(a[2].node).not.toBe(b[3].node)
-        expect(a[3].node).not.toBe(b[2].node)
-
+        list.forEach(vnode => {
+            expect(isReusedNode(vnode)).toBe(false)
+        })
         unmount()
     })
 
     test('keyed list should resuse element that same keyed', async () => {
-        let unmount: any
-
+        expect.assertions(4)
         const list$ = Observable.of(['a', 'b', 'c', 'd'])
-            .concat(Observable.of(['b', 'a', 'd', 'c']).delay(50))
+            .concat(Observable.of(['b', 'a', 'd', 'c']).delay(10))
+            .concatMap(x => Observable.from(x).map(n => li({ key: n }, n)).toArray())
+            .shareReplay(1)
 
-        const tree = ul([
-            list$.concatMap(x =>
-                Observable.from(x).map(n => li({ key: n }, n)).toArray(),
-            ),
-        ])
+        const tree = ul([list$])
+        const unmount = mount(tree)
+        const list = await list$.toPromise().then(() => tree.children[0].children)
 
-        unmount = mount(tree)
-
-        const a = tree.children[0].children
-
-        await delay(60)
-
-        const b = tree.children[0].children
-
-        b.forEach(vnode => expect(isReusedNode(vnode)).toBe(true))
-        expect(a[0].node).toBe(b[1].node)
-        expect(a[1].node).toBe(b[0].node)
-        expect(a[2].node).toBe(b[3].node)
-        expect(a[3].node).toBe(b[2].node)
-
+        list.forEach(vnode => {
+            expect(isReusedNode(vnode)).toBe(true)
+        })
         unmount()
     })
 })

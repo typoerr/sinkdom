@@ -8,7 +8,6 @@ export enum VNodeType {
     Comment,
     Text,
     Fragment,
-    Fake,
     Sink,
 }
 
@@ -78,16 +77,6 @@ export class VFragmentNode implements VNode {
     }
 }
 
-export class VFakeNode implements VNode {
-    vnodeType = VNodeType.Fake
-    type = 'fake'
-    props = {}
-    children: VNode[]
-    constructor(children: VNode[]) {
-        this.children = children
-    }
-}
-
 export function isVNode(vnode: any): vnode is VNode {
     return vnode != undefined && vnode.vnodeType != undefined
 }
@@ -125,6 +114,12 @@ export function getKey(vnode: VNode) {
     return vnode.props.key || undefined
 }
 
+export function isSameKey(a: VNode, b: VNode) {
+    const ak = getKey(a)
+    const bk = getKey(b)
+    return ak === bk && ak != undefined && bk != undefined
+}
+
 export function hasSubscriptions(vnode: VNode): vnode is VNode & { subscriptions: Subscription[] } {
     return Array.isArray((vnode as any).subscriptions)
 }
@@ -137,7 +132,7 @@ export function toVNode(x: any): VNode {
     } else if (typeof x === 'string' || typeof x === 'number') {
         return new VTextNode(String(x))
     } else if (Array.isArray(x)) {
-        return new VFragmentNode(x.map(toVNode))
+        return new VFragmentNode(x)
     } else {
         return new VCommentNode()
     }
