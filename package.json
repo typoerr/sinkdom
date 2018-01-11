@@ -17,8 +17,7 @@
   },
   "homepage": "https://github.com/cotttpan/sinkdom",
   "dependencies": {
-    "@cotto/utils.ts": "^0.2.3",
-    "debounce": "^1.1.0"
+    "@cotto/utils.ts": "^0.2.3"
   },
   "devDependencies": {
     "@cotto/tslint-config": "^0.1.1",

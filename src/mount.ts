@@ -66,7 +66,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     }
 
     const ps = callbacks.process.bind(null, undefined)
-    const mo = new MutationObserver(require('debounce')(ps, 300))
+    const mo = new MutationObserver(ps)
     mo.observe(container, { childList: true, subtree: true })
 
     tree = activate(tree, null, context)
