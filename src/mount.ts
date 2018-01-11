@@ -78,7 +78,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         onremove(tree.node as HTMLElement, tree as VElementNode, () => {
             container.removeChild(tree.node!)
             dispose(tree, null, context)
-            mo.disconnect()
+            defer(mo.disconnect.bind(mo))
         })
     }
 }
