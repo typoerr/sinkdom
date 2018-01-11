@@ -142,7 +142,7 @@ test('lifecycle', async () => {
         expect(document.body.contains(el)).toBe(true)
         expect(isVElementNode(vnode)).toBe(true)
     }
-    const remove = (el: HTMLElement, vnode: VNode, done: Function) => {
+    const remove = (el: HTMLElement, vnode: VNode) => (done: Function) => {
         expect(document.body.contains(el)).toBe(true)
         expect(isVElementNode(vnode)).toBe(true)
         done()
@@ -154,6 +154,6 @@ test('lifecycle', async () => {
 
     const tree = div({ hook: { create, insert, remove, drop } })
     const unmount = mount(tree)
-    await delay(350)
+    await delay(50)
     unmount()
 })

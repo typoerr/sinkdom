@@ -7,7 +7,7 @@ const idx$ = Observable.timer(0, 2000)
     .shareReplay(1)
 
 const hook = {
-    remove: (el: HTMLElement, _vnode: VNode, done: Function) => {
+    remove: (el: HTMLElement, _vnode: VNode) => (done: Function) => {
         el.style.color = 'red'
         setTimeout(done, 1000)
     },

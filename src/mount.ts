@@ -23,7 +23,7 @@ import {
     createPlaceholder,
 } from './dom'
 import { invokeNodeHook, hasHook } from './lifecycle'
-import { attach, proxy, createTreeWalker, queue, defer, invokeCallback } from './utils'
+import { attach, proxy, createTreeWalker, queue, defer } from './utils'
 import { setElementProps, PropsObserverContext } from './props-observer'
 import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
 import { Options } from './options'
@@ -74,9 +74,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     container.appendChild(tree.node!)
 
     return function unmount() {
-        const hook = tree.props.hook || {}
-        const onremove = hook.remove || invokeCallback
-        onremove(tree.node as HTMLElement, tree as VElementNode, () => {
+        return invokeNodeHook('remove', tree as VElementNode, () => {
             container.removeChild(tree.node!)
             dispose(tree, null, context)
             defer(mo.disconnect.bind(mo))
