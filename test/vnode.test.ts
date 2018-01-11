@@ -7,11 +7,13 @@ test('toReusedNode / isResusedNode', () => {
     expect(_.isReusedNode(_.toReusedNode(vnode))).toBe(true)
 })
 
-test('getKey', () => {
+test('getKey / isSameKey', () => {
     const v1 = new _.VElementNode('div', { key: 'key' }, [])
     const v2 = new _.VElementNode('div', {}, [])
     expect(_.getKey(v1)).toBe('key')
     expect(_.getKey(v2)).toBeUndefined()
+    expect(_.isSameKey(v1, v1)).toBe(true)
+    expect(_.isSameKey(v1, v2)).toBe(false)
 })
 
 test('hasSubscriptions', () => {

@@ -18,7 +18,7 @@ import {
     appendChild,
     createElementNode,
     createTextNode,
-    createComment,
+    createMarkerComment,
     createFrangment,
     createPlaceholder,
 } from './dom'
@@ -43,7 +43,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
             proxy<VElementNode, Parent, Context>(isVElementNode, attach('node', createElementNode), setElementProps),
             proxy<VSinkNode, Parent, Context>(isVSinkNode, attach('node', createPlaceholder)),
             proxy<VTextNode, Parent, Context>(isVTextNode, attach('node', createTextNode)),
-            proxy<VCommentNode, Parent, Context>(isVCommentNode, attach('node', createComment)),
+            proxy<VCommentNode, Parent, Context>(isVCommentNode, attach('node', createMarkerComment)),
             proxy<VFragmentNode, Parent, Context>(isVFragmentNode, attach('node', createFrangment)),
             appendChild,
             proxy<VSinkNode, Parent, Context>(isVSinkNode, observeNode),
