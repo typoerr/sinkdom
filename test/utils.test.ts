@@ -24,13 +24,32 @@ test('proxy', () => {
     const a = jest.fn()
     const b = jest.fn()
     const c = jest.fn()
-    util.proxy(isNumber, a, b)(1)
-    util.proxy(isString, c)(1)
+    const whenNumber = util.proxy(isNumber)(a, b)
+    const whenString = util.proxy(isString)(c)
+
+    whenNumber(1)
+    whenString(1)
+
     expect(a).toBeCalledWith(1)
     expect(a).toHaveBeenCalledTimes(1)
     expect(b).toBeCalledWith(1)
     expect(b).toHaveBeenCalledTimes(1)
     expect(c).not.toBeCalled()
+})
+
+test('cond', () => {
+    const f1 = jest.fn()
+    const f2 = jest.fn()
+    const invoke = util.cond(
+        util.cond.when(isNumber, f1),
+        util.cond.when(isString, f2),
+    )
+    invoke(1, 1, true)
+    invoke('a', 1, true)
+    expect(f1.mock.calls).toEqual([[1, 1, true]])
+    expect(f2.mock.calls).toEqual([['a', 1, true]])
+    expect(f1).toHaveBeenCalledTimes(1)
+    expect(f2).toHaveBeenCalledTimes(1)
 })
 
 test('attach', () => {
