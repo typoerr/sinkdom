@@ -21,11 +21,19 @@ export interface NodeObserverContext {
     proxy: (observable: Observable<any>) => Observable<any>
 }
 
-function observe(host: VSinkNode, ctx: NodeObserverContext) {
-    const $placeholder = host.node as Comment
-    const $parent = $placeholder.parentNode as Element
-
-    return function patch(nextNode: VNode) {
+class NodeObserver {
+    $placeholder: Comment
+    $parent: Node
+    host: VSinkNode
+    ctx: NodeObserverContext
+    constructor(host: VSinkNode, ctx: NodeObserverContext) {
+        this.$placeholder = host.node!
+        this.$parent = host.node!.parentNode!
+        this.host = host
+        this.ctx = ctx
+    }
+    next(nextNode: VNode) {
+        const { $placeholder, $parent, host, ctx } = this
         nextNode = toVNode(nextNode)
         const curCh = host.children
         const nextCh = isVFragmentNode(nextNode) ? nextNode.children : [nextNode]
@@ -56,6 +64,7 @@ function observe(host: VSinkNode, ctx: NodeObserverContext) {
             let nextStartIdx = 0
             let nextEndIdx = nextCh.length - 1
             let nextAtStart: VNode | undefined = nextCh[nextStartIdx]
+            let next: VNode
             let nextAtEnd: VNode | undefined = nextCh[nextEndIdx]
             let curKeyedIdxMap: Map<string, number> | undefined
             let idxInCurCh: number | undefined
@@ -78,12 +87,12 @@ function observe(host: VSinkNode, ctx: NodeObserverContext) {
                     curAtEnd = curCh[--curEndIdx]
                     nextAtEnd = nextCh[--nextEndIdx]
                 } else if (isSameKey(curAtStart, nextAtEnd)) {
-                    const next = nextCh[nextEndIdx] = toReusedNode(curAtStart)
+                    next = nextCh[nextEndIdx] = toReusedNode(curAtStart)
                     insertBefore($parent, next.node!, curAtEnd.node!.nextSibling)
                     curAtStart = curCh[++curStartIdx]
                     nextAtEnd = nextCh[--nextEndIdx]
                 } else if (isSameKey(curAtEnd, nextAtStart)) {
-                    const next = nextCh[nextStartIdx] = toReusedNode(curAtEnd)
+                    next = nextCh[nextStartIdx] = toReusedNode(curAtEnd)
                     insertBefore($parent, next.node!, curAtStart.node!)
                     curAtEnd = curCh[--curEndIdx]
                     nextAtStart = nextCh[++nextStartIdx]
@@ -93,11 +102,11 @@ function observe(host: VSinkNode, ctx: NodeObserverContext) {
                     }
                     idxInCurCh = curKeyedIdxMap.get(getKey(nextAtStart)!)
                     if (idxInCurCh === undefined) {
-                        const next = nextCh[nextStartIdx] = ctx.activate(nextAtStart)
+                        next = nextCh[nextStartIdx] = ctx.activate(nextAtStart)
                         insertBefore($parent, next.node!, curAtStart.node!)
                         nextAtStart = nextCh[++nextStartIdx]
                     } else {
-                        const next = nextCh[nextStartIdx] = toReusedNode(curCh[idxInCurCh])
+                        next = nextCh[nextStartIdx] = toReusedNode(curCh[idxInCurCh])
                         insertBefore($parent, next.node!, curAtStart.node!)
                         curCh[idxInCurCh] = undefined as any
                         nextAtStart = nextCh[++nextStartIdx]
@@ -115,6 +124,12 @@ function observe(host: VSinkNode, ctx: NodeObserverContext) {
             // update refs
             host.children = nextCh
         }
+    }
+    error(error: any) {
+        console.error(error)
+    }
+    complete() {
+        /* noop */
     }
 }
 
@@ -172,7 +187,7 @@ function replaceElement(parent: Node, next: VElementNode, cur: VElementNode, dis
 export function observeNode(host: VSinkNode, _: any, ctx: NodeObserverContext) {
     host.subscriptions.push(subscribe(
         ctx.proxy(host.source),
-        observe(host, ctx),
+        new NodeObserver(host, ctx),
     ))
 }
 

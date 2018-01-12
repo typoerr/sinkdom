@@ -26,17 +26,21 @@ import { invokeNodeHook, hasHook } from './lifecycle'
 import { attach, proxy, createTreeWalker, queue, defer } from './utils'
 import { setElementProps, PropsObserverContext } from './props-observer'
 import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
-import { Options } from './options'
-import { hookInvoker as globalHookInvoker } from './hook'
+import { Hook, hookInvoker as globalHookInvoker } from './hook'
+import { Observable } from './observable'
 
 type Parent = VNode | null
 type Context = NodeObserverContext & PropsObserverContext
 
-const isNotReusedNode = not(isReusedNode)
+export interface MountOptions {
+    hook?: Hook[]
+    proxy?(observable: Observable<any>): Observable<any>
+}
 
-export function mount(tree: VNode, container: HTMLElement = document.body, options: Options = {}) {
-    tree = toVNode(tree)
+export function mount(tree: VNode, container: HTMLElement = document.body, options: MountOptions = {}) {
+    const isNotReusedNode = not(isReusedNode)
     const callbacks = queue(defer as any)
+    tree = toVNode(tree)
 
     const activate = createTreeWalker<VNode, Context>(
         proxy<VNode, Parent, Context>(isNotReusedNode,
