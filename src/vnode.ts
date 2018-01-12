@@ -20,7 +20,7 @@ export interface VNode {
 }
 
 export class VElementNode implements VNode {
-    vnodeType = VNodeType.Element
+    vnodeType: VNodeType
     type: string
     props: Props
     children: VNode[]
@@ -32,10 +32,11 @@ export class VElementNode implements VNode {
         this.children = children || []
     }
 }
+VElementNode.prototype.vnodeType = VNodeType.Element
 
 export class VSinkNode implements VNode {
-    vnodeType = VNodeType.Sink
-    type = 'sink'
+    vnodeType: VNodeType
+    type: 'sink'
     props: Props = {}
     children: VNode[] = []
     node?: Comment
@@ -45,10 +46,12 @@ export class VSinkNode implements VNode {
         this.source = source
     }
 }
+VSinkNode.prototype.type = 'sink'
+VSinkNode.prototype.vnodeType = VNodeType.Sink
 
 export class VTextNode implements VNode {
-    vnodeType = VNodeType.Text
-    type = 'text'
+    vnodeType: VNodeType
+    type: 'text'
     props = {}
     children = []
     value: string
@@ -57,18 +60,22 @@ export class VTextNode implements VNode {
         this.value = text
     }
 }
+VTextNode.prototype.type = 'text'
+VTextNode.prototype.vnodeType = VNodeType.Text
 
 export class VCommentNode implements VNode {
-    vnodeType = VNodeType.Comment
-    type = 'comment'
+    vnodeType: VNodeType
+    type: 'comment'
     props = {}
     children = []
     node?: Comment
 }
+VCommentNode.prototype.type = 'comment'
+VCommentNode.prototype.vnodeType = VNodeType.Comment
 
 export class VFragmentNode implements VNode {
-    vnodeType = VNodeType.Fragment
-    type = 'fragment'
+    vnodeType: VNodeType
+    type: 'fragment'
     props = {}
     children: VNode[]
     node?: DocumentFragment
@@ -76,6 +83,8 @@ export class VFragmentNode implements VNode {
         this.children = children
     }
 }
+VFragmentNode.prototype.type = 'fragment'
+VFragmentNode.prototype.vnodeType = VNodeType.Fragment
 
 export function isVNode(vnode: any): vnode is VNode {
     return vnode != undefined && vnode.vnodeType != undefined
