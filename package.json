@@ -1,7 +1,7 @@
 {
   "name": "@cotto/sinkdom",
   "description": "observable data binding",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "cotto",
   "main": "index.js",
   "jsnext:main": "es/index.js",
