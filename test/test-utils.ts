@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs'
-import { delay, isFunction } from '@cotto/utils.ts'
-import { proxy } from '../src/utils'
+import { delay } from '@cotto/utils.ts'
 import { mount, VNode } from '../src/index'
 
 export function treeTester() {
@@ -10,11 +9,12 @@ export function treeTester() {
     function setup() {
         document.body.innerHTML = ''
     }
-    function teardown() {
-        return delay(30)
-            .then(() => unmount)
-            .then(proxy(isFunction, unmount))
-            .then(() => unmount = undefined)
+    async function teardown() {
+        await delay(30)
+        if (typeof unmount === 'function') {
+            unmount()
+        }
+        unmount = undefined
     }
     function evaluate(str: string) {
         expect(document.body.innerHTML).toBe(str)
