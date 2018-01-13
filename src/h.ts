@@ -2,8 +2,9 @@ import { flatten } from '@cotto/utils.ts'
 import { Observable } from './observable'
 import { VNode, VElementNode, toVNode, VSVGNode } from './vnode'
 import { Props } from './props'
+
 export interface VNodeFactory {
-    (type: string, props?: Props, ...children: any[]): VNode,
+    <T extends VNode>(type: string, props?: Props, ...children: (ChildNode | T)[]): VNode,
 }
 
 export interface TagFn {
@@ -11,6 +12,8 @@ export interface TagFn {
     <T extends VNode>(children?: Children | (Children | T)[]): VNode
     <T extends VNode>(props: Props, children: Children | (Children | T)[]): VNode
 }
+
+export type Children = string | null | undefined | boolean | Observable<any>
 
 export const h = (function () {
     return Object.assign(h, { svg })
@@ -23,8 +26,6 @@ export const h = (function () {
     }
     // tslint:enable:no-shadowed-variable
 })()
-
-export type Children = string | null | undefined | boolean | Observable<any>
 
 export function hh(tagName: string, factory: VNodeFactory): TagFn {
     return function tag(arg: any) {
