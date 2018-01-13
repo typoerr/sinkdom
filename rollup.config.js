@@ -13,6 +13,7 @@ export default {
         resolve(),
         typescript({
             tsconfig: 'tsconfig.lib.json',
+            module: 'es2015',
             typescript: require('typescript'),
         }),
         minify({ comments: false }),
