@@ -154,5 +154,7 @@ test('lifecycle', async () => {
 
     const tree = div({ hook: { create, insert, remove, drop } })
     const unmount = mount(tree)
-    await delay(50).then(unmount)
+    await delay(5)
+    unmount()
+    await delay(5)
 })

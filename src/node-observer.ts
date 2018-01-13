@@ -19,6 +19,7 @@ export interface NodeObserverContext {
     activate: (vnode: VNode) => VNode,
     dispose: (vnode: VNode) => void,
     proxy: (observable: Observable<any>) => Observable<any>
+    onpatch: (vnode: VNode) => void
 }
 
 class NodeObserver {
@@ -124,6 +125,8 @@ class NodeObserver {
             // update refs
             host.children = nextCh
         }
+        // notifier patch is completed
+        ctx.onpatch(this.host)
     }
     error(error: any) {
         console.error(error)

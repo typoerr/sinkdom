@@ -38,6 +38,9 @@ export interface MountOptions {
     proxy?(observable: Observable<any>): Observable<any>
 }
 
+const DEBOUNCE_TIME = process.env.NODE_ENV === 'test' ? 0 : 300 // suitable?
+const debounce = require('debounce')
+
 const isNotReusedNode = not(isReusedNode)
 
 const attachElement = attach('node', createElement)
@@ -60,6 +63,8 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
     tree = toVNode(tree)
 
     const callbacks = queue(defer as any)
+    const ps = callbacks.process.bind(callbacks, undefined)
+    const processCallbacks = debounce(ps, DEBOUNCE_TIME)
 
     const activate = createTreeWalker<VNode, Context>(
         whenNotReuseableNode(
@@ -90,20 +95,18 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         activate: (vnode: VNode) => activate(vnode, null, context, isNotReusedNode),
         dispose: (vnode: VNode) => callbacks.enqueue(dispose.bind(null, vnode, null, context)),
         proxy: options.proxy || identity,
+        onpatch: processCallbacks,
     }
-
-    const ps = callbacks.process.bind(null, undefined)
-    const mo = new MutationObserver(ps)
-    mo.observe(container, { childList: true, subtree: true })
 
     tree = activate(tree, null, context)
     container.appendChild(tree.node!)
+    processCallbacks()
 
     return function unmount() {
         return invokeNodeHook('remove', tree as VElementNode, () => {
             container.removeChild(tree.node!)
             dispose(tree, null, context)
-            defer(mo.disconnect.bind(mo))
+            processCallbacks()
         })
     }
 }

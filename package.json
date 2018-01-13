@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/cotttpan/sinkdom",
   "dependencies": {
-    "@cotto/utils.ts": "^0.2.3"
+    "@cotto/utils.ts": "^0.2.3",
+    "debounce": "^1.1.0"
   },
   "devDependencies": {
     "@cotto/tslint-config": "^0.1.1",
@@ -28,7 +29,6 @@
     "awesome-typescript-loader": "^3.4.1",
     "gzip-size-cli": "^2.1.0",
     "jest": "^22.0.5",
-    "mutationobserver-shim": "^0.3.2",
     "npm-run-all": "^4.1.2",
     "rimraf": "^2.6.2",
     "rollup": "^0.54.0",
