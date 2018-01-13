@@ -1,8 +1,9 @@
-import { VNode, VElementNode, VTextNode } from './vnode'
+import { VNode, VSVGNode, VElementNode, VTextNode } from './vnode'
 
 const MARKER = process.env.NODE_ENV === 'test' ? '' : `${String(Math.random()).slice(2)}`
 const COMMENT = `{{${MARKER}}}`
 const PLACEHOLDER = `{{placeholder-${MARKER}}}`
+const SVG_URI = 'http://www.w3.org/2000/svg'
 
 export function appendChild(vnode: VNode, parent: VNode | null) {
     if (vnode.node && parent && parent.node) {
@@ -22,8 +23,12 @@ export function replaceChild(parent: Node, next: Node, cur: Node) {
     return parent.replaceChild(next, cur)
 }
 
-export function createElementNode(vnode: VElementNode) {
+export function createElement(vnode: VElementNode) {
     return document.createElement(vnode.type)
+}
+
+export function createSVGElement(vnode: VSVGNode): SVGElement {
+    return document.createElementNS(SVG_URI, vnode.type) as SVGElement
 }
 
 export function createTextNode(vnode: VTextNode) {
