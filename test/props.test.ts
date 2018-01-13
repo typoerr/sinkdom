@@ -2,7 +2,7 @@ import { Observable, Subject } from 'rxjs'
 import { delay } from '@cotto/utils.ts'
 import { html } from '../src/utils'
 import { treeTester } from './test-utils'
-import { div, input, mount, VNode, isVElementNode } from '../src/index'
+import { div, input, mount } from '../src/index'
 
 const { setup, teardown, testTree } = treeTester()
 
@@ -134,26 +134,25 @@ describe('eventlistener', () => {
 //
 test('lifecycle', async () => {
     expect.assertions(8)
-    const create = (el: HTMLElement, vnode: VNode) => {
+    const create = (el: HTMLElement) => {
         expect(document.body.contains(el)).toBe(false)
-        expect(isVElementNode(vnode)).toBe(true)
+        expect(tree.node!).toBe(el)
     }
-    const insert = (el: HTMLElement, vnode: VNode) => {
+    const insert = (el: HTMLElement) => {
         expect(document.body.contains(el)).toBe(true)
-        expect(isVElementNode(vnode)).toBe(true)
+        expect(tree.node!).toBe(el)
     }
-    const remove = (el: HTMLElement, vnode: VNode) => (done: Function) => {
+    const remove = (el: HTMLElement) => (done: Function) => {
         expect(document.body.contains(el)).toBe(true)
-        expect(isVElementNode(vnode)).toBe(true)
+        expect(tree.node!).toBe(el)
         done()
     }
-    const drop = (el: HTMLElement, vnode: VNode) => {
+    const drop = (el: HTMLElement) => {
         expect(document.body.contains(el)).toBe(false)
-        expect(isVElementNode(vnode)).toBe(true)
+        expect(tree.node!).toBe(el)
     }
 
     const tree = div({ hook: { create, insert, remove, drop } })
     const unmount = mount(tree)
-    await delay(50)
-    unmount()
+    await delay(50).then(unmount)
 })

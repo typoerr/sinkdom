@@ -1,6 +1,6 @@
 /* tslint:disable:no-console */
 import { Observable, Scheduler } from 'rxjs'
-import { mount, div, VNode, span } from '../src/index'
+import { mount, div, span } from '../src/index'
 import { makeHashGroup } from '@cotto/utils.ts'
 
 interface Item {
@@ -24,7 +24,7 @@ function store<S>(patch$: Observable<(state: S) => S>, init: any) {
 }
 
 const hook = {
-    remove: (el: HTMLElement, _vnode: VNode) => (done: Function) => {
+    remove: (el: HTMLElement) => (done: Function) => {
         el.style.color = 'red'
         setTimeout(done, 300)
     },

@@ -1,4 +1,4 @@
-import { mount, div, VNode, isVNode } from '../src/index'
+import { mount, div } from '../src/index'
 import { hookInvoker } from '../src/hook'
 
 test('hookInvoker', () => {
@@ -13,12 +13,11 @@ test('hookInvoker', () => {
 })
 
 test('global hook', async () => {
-    expect.assertions(11)
+    expect.assertions(8)
     const tree = div()
-    const callback = (el: HTMLElement, vnode: VNode) => {
+    const callback = (el: HTMLElement) => {
         expect(el).toBeInstanceOf(HTMLElement)
-        expect(isVNode(vnode)).toBe(true)
-        expect(vnode).toBe(tree)
+        expect(tree.node).toBe(el)
     }
     const create = jest.fn(callback)
     const drop = jest.fn(callback)
