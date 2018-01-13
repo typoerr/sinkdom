@@ -5,6 +5,7 @@ const REUSED = Symbol('REUSED')
 
 export enum VNodeType {
     Element,
+    SVG,
     Comment,
     Text,
     Fragment,
@@ -33,6 +34,21 @@ export class VElementNode implements VNode {
     }
 }
 VElementNode.prototype.vnodeType = VNodeType.Element
+
+export class VSVGNode implements VNode {
+    vnodeType: VNodeType
+    type: string
+    props: Props
+    children: VNode[]
+    node?: SVGElement
+    subscriptions: Subscription[] = []
+    constructor(type: string, props: Props, children: VNode[]) {
+        this.type = type
+        this.props = props
+        this.children = children
+    }
+}
+VSVGNode.prototype.vnodeType = VNodeType.SVG
 
 export class VSinkNode implements VNode {
     vnodeType: VNodeType
@@ -92,6 +108,10 @@ export function isVNode(vnode: any): vnode is VNode {
 
 export function isVElementNode(vnode: any): vnode is VElementNode {
     return vnode != undefined && vnode.vnodeType === VNodeType.Element
+}
+
+export function isVSVGNode(vnode: any): vnode is VSVGNode {
+    return vnode != undefined && vnode.vnodeType === VNodeType.SVG
 }
 
 export function isVSinkNode(vnode: any): vnode is VSinkNode {

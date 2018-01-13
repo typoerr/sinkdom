@@ -1,4 +1,4 @@
-import { not, identity, bundle } from '@cotto/utils.ts'
+import { not, identity, bundle, or } from '@cotto/utils.ts'
 import {
     VNode,
     VElementNode,
@@ -6,6 +6,7 @@ import {
     VCommentNode,
     VFragmentNode,
     isVElementNode,
+    isVSVGNode,
     isVSinkNode,
     isVTextNode,
     isVCommentNode,
@@ -15,7 +16,8 @@ import {
 } from './vnode'
 import {
     appendChild,
-    createElementNode,
+    createElement,
+    createSVGElement,
     createTextNode,
     createMarkerComment,
     createFrangment,
@@ -23,7 +25,7 @@ import {
 } from './dom'
 import { invokeNodeHook, hasHook } from './lifecycle'
 import { attach, proxy, createTreeWalker, queue, defer, cond } from './utils'
-import { setElementProps, PropsObserverContext } from './props-observer'
+import { setElementProps, setSVGProps, PropsObserverContext } from './props-observer'
 import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
 import { Hook, hookInvoker as globalHookInvoker } from './hook'
 import { Observable } from './observable'
@@ -38,14 +40,15 @@ export interface MountOptions {
 
 const isNotReusedNode = not(isReusedNode)
 
-const attachElement = attach('node', createElementNode)
+const attachElement = attach('node', createElement)
+const attachSVGElementNS = attach('node', createSVGElement)
 const attachPlaceholder = attach<VNode, 'node'>('node', createPlaceholder)
 const attachTextNode = attach('node', createTextNode)
 const attachFragment = attach<VFragmentNode, 'node'>('node', createFrangment)
 const attachComment = attach<VCommentNode, 'node'>('node', createMarkerComment)
 
 const whenNotReuseableNode = proxy<VNode, Parent, Context>(isNotReusedNode)
-const whenVElementNode = proxy<VElementNode, Parent, Context>(isVElementNode)
+const whenVElementNodeOrVSVGNode = proxy<VElementNode, Parent, Context>(or(isVElementNode, isVSVGNode))
 const whenVSinkNode = proxy<VSinkNode, Parent, Context>(isVSinkNode)
 const whenHasInsertHook = proxy<VElementNode, Parent, Context>(hasHook('insert'))
 
@@ -62,6 +65,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         whenNotReuseableNode(
             cond(
                 cond.when(isVElementNode, bundle(attachElement, setElementProps)),
+                cond.when(isVSVGNode, bundle(attachSVGElementNS, setSVGProps)),
                 cond.when(isVSinkNode, attachPlaceholder),
                 cond.when(isVTextNode, attachTextNode),
                 cond.when(isVFragmentNode, attachFragment),
@@ -69,7 +73,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
             ),
             appendChild,
             whenVSinkNode(observeNode),
-            whenVElementNode(invokeNodeHook.bind(null, 'create')),
+            whenVElementNodeOrVSVGNode(invokeNodeHook.bind(null, 'create')),
             globalHookInvoker('create', options.hook || []),
             whenHasInsertHook(enqueueInsertHook(callbacks)),
         ),
