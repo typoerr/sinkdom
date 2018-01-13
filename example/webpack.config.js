@@ -4,7 +4,7 @@ const NotifierPlugin = require('webpack-notifier')
 
 module.exports = {
     context: path.resolve(__dirname, '../src'),
-    entry: '../example/svg-sample.ts',
+    entry: '../example/svg.ts',
     output: {
         path: path.resolve(__dirname, './'),
         filename: 'index.bundle.js',
