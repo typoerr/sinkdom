@@ -90,9 +90,9 @@ describe('createTreeWalker', () => {
     })
 })
 
-test('queue', async () => {
+test('createQueue', async () => {
     expect.assertions(2)
-    const queue = util.queue()
+    const queue = util.createQueue()
     const t1 = jest.fn()
     const t2 = jest.fn()
     queue.enqueue(t1)

@@ -1,5 +1,7 @@
 import { Func0, Func1, Func2, Func3, constant } from '@cotto/utils.ts'
 
+const debounce = require('debounce')
+
 export const defer: <R>(f: Func0<R>) => Promise<R> = Promise.resolve()
     .then.bind(Promise.resolve())
 
@@ -91,17 +93,32 @@ export function createTreeWalker<T extends Node<T>, C = any>(...visitor: Visitor
     }
 }
 
-export function queue(scheduler: (f: Function) => void = setTimeout) {
+export function createQueue(
+    scheduler: (f: Function) => void = setTimeout,
+    debounceTime = 100,
+    maxDebounceSize = 1000,
+) {
     let funcs: Function[] = []
-    return { enqueue, process }
+    const debounced = debounce(run, debounceTime)
+    return {
+        enqueue,
+        process: process as typeof run,
+    }
     function enqueue(f: Function) {
         funcs.push(f)
         return f
     }
-    function process(done?: Function) {
-        let list = done ? [...funcs, done] : funcs
+    function run(done?: any) {
+        let list = typeof done === 'function' ? [...funcs, done] : funcs
         funcs = []
         list.forEach(scheduler)
+    }
+    function process(done: any) {
+        if (funcs.length > maxDebounceSize) {
+            debounced.flush(done)
+        } else {
+            debounced(done)
+        }
     }
 }
 

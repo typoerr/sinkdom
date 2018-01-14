@@ -24,7 +24,7 @@ import {
     createPlaceholder,
 } from './dom'
 import { invokeNodeHook, hasHook } from './lifecycle'
-import { attach, proxy, createTreeWalker, queue, defer, cond } from './utils'
+import { attach, proxy, createTreeWalker, createQueue, defer, cond } from './utils'
 import { setElementProps, setSVGProps, PropsObserverContext } from './props-observer'
 import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
 import { Hook, hookInvoker as globalHookInvoker } from './hook'
@@ -38,8 +38,10 @@ export interface MountOptions {
     proxy?(observable: Observable<any>): Observable<any>
 }
 
-const DEBOUNCE_TIME = process.env.NODE_ENV === 'test' ? 0 : 300 // suitable?
-const debounce = require('debounce')
+const DEBOUNCE_TIME = {
+    INSERT: 1000 / 60,
+    DISPOSE: process.env.NODE_ENV === 'test' ? 0 : 300,
+}
 
 const isNotReusedNode = not(isReusedNode)
 
@@ -62,9 +64,9 @@ const enqueueInsertHook = (callbacks: { enqueue: Function }) => {
 export function mount(tree: VNode, container: HTMLElement = document.body, options: MountOptions = {}) {
     tree = toVNode(tree)
 
-    const callbacks = queue(defer as any)
-    const ps = callbacks.process.bind(callbacks, undefined)
-    const processCallbacks = debounce(ps, DEBOUNCE_TIME)
+    const insertedCallbackQueue = createQueue(defer as any, DEBOUNCE_TIME.INSERT, 1000)
+    const disposedCallbackQueue = createQueue(defer as any, DEBOUNCE_TIME.DISPOSE, 1000)
+    const processCallbacks = bundle(insertedCallbackQueue.process, disposedCallbackQueue.process)
 
     const activate = createTreeWalker<VNode, Context>(
         whenNotReuseableNode(
@@ -80,7 +82,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
             whenVSinkNode(observeNode),
             whenVElementNodeOrVSVGNode(invokeNodeHook.bind(null, 'create')),
             globalHookInvoker('create', options.hook || []),
-            whenHasInsertHook(enqueueInsertHook(callbacks)),
+            whenHasInsertHook(enqueueInsertHook(insertedCallbackQueue)),
         ),
     )
 
@@ -93,7 +95,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
 
     const context: Context = {
         activate: (vnode: VNode) => activate(vnode, null, context, isNotReusedNode),
-        dispose: (vnode: VNode) => callbacks.enqueue(dispose.bind(null, vnode, null, context)),
+        dispose: (vnode: VNode) => disposedCallbackQueue.enqueue(dispose.bind(null, vnode, null, context)),
         proxy: options.proxy || identity,
         onpatch: processCallbacks,
     }
