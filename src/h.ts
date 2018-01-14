@@ -4,16 +4,18 @@ import { VNode, VElementNode, toVNode, VSVGNode } from './vnode'
 import { Props } from './props'
 
 export interface VNodeFactory {
-    <T extends VNode>(type: string, props?: Props, ...children: (ChildNode | T)[]): VNode,
+    (type: string, props?: Props, ...children: Child[]): VNode,
 }
 
 export interface TagFn {
+    /* tslint:disable:unified-signatures */
     (props: Props): VNode
-    <T extends VNode>(children?: Children | (Children | T)[]): VNode
-    <T extends VNode>(props: Props, children: Children | (Children | T)[]): VNode
+    (children?: Child | Child[]): VNode
+    (props: Props, children: Child | Child[]): VNode
+    /* tslint:eable:unified-signatures */
 }
 
-export type Children = string | null | undefined | boolean | Observable<any>
+export type Child = string | number | null | undefined | boolean | VNode | Observable<any>
 
 export const h = (function () {
     return Object.assign(h, { svg })
