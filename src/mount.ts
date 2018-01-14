@@ -39,7 +39,7 @@ export interface MountOptions {
 }
 
 const DEBOUNCE_TIME = {
-    INSERT: 1000 / 60,
+    INSERT: process.env.NODE_ENV === 'test' ? 0 : 1000 / 60,
     DISPOSE: process.env.NODE_ENV === 'test' ? 0 : 300,
 }
 
