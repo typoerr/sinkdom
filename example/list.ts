@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs'
-import { mount, span, li, ul } from '../src/index'
+import { mount, span, li, ul, div, h1 } from '../src/index'
 
 interface Item {
     id: number
@@ -15,11 +15,17 @@ function ListItem({ id, content }: Item) {
 }
 
 function view(list$: Observable<Item[]>) {
-    return ul([
-        list$.switchMap(list => Observable.from(list)
-            .map(ListItem)
-            .toArray(),
-        ),
+    return div([
+        h1('static list'),
+        ul([1, 2, 3].map(createItem).map(ListItem)),
+
+        h1('observable list'),
+        ul([
+            list$.switchMap(list => Observable.from(list)
+                .map(ListItem)
+                .toArray(),
+            ),
+        ]),
     ])
 }
 
