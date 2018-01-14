@@ -1,4 +1,3 @@
-
 import { Observable } from 'rxjs'
 import { mount, div, h } from '../src/index'
 
@@ -20,8 +19,8 @@ const view = (color$: Observable<string>) => (
 )
 
 const step$ = Observable.of(0)
-    .concat(Observable.timer(1000, 1000).take(20))
+    .concat(Observable.timer(1000, 1000).take(1000))
     .shareReplay(1)
-const tree = view(step$.map(colorGen))
-mount(tree, document.body)
+
+mount(view(step$.map(colorGen)), document.body)
 
