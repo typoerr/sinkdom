@@ -1,65 +1,36 @@
-/* tslint:disable:no-console */
-import { Observable, Scheduler } from 'rxjs'
-import { mount, div, span } from '../src/index'
-import { makeHashGroup } from '@cotto/utils.ts'
+import { Observable } from 'rxjs'
+import { mount, span, li, ul } from '../src/index'
 
 interface Item {
-    id: number,
-    content: number | string
+    id: number
+    content: string
 }
 
-function model(intent: { step$: Observable<number> }) {
-    const item = (id: number) => ({ id, content: id })
-    const [even$, odd$] = intent.step$.partition(i => i % 2 === 0)
-    return Observable.merge(
-        even$.mapTo(() => [1, 2, 3].map(item)),
-        odd$.mapTo(() => [1, 2, 3, 4].map(item)),
-    )
-}
-
-function store<S>(patch$: Observable<(state: S) => S>, init: any) {
-    return patch$.scan((state: S, fn) => fn(state), init)
-        .distinctUntilChanged()
-        .shareReplay(1)
-}
-
-const hook = {
-    remove: (el: HTMLElement) => (done: Function) => {
-        el.style.color = 'red'
-        setTimeout(done, 300)
-    },
-}
-function listItem({ item, hash$ }: { item: Item, hash$: Observable<{ [key: string]: Item }> }) {
-    const id = String(item.id)
-    const content$ = hash$.pluck(id, 'content').filter(Boolean)
-    return div({ key: id, hook }, [
-        span(id + ': '),
-        span(content$),
+function ListItem({ id, content }: Item) {
+    // you can use props.key for efficient list rendering
+    return li({ key: `${id}` }, [
+        span(`id: ${id} - `),
+        span(content),
     ])
 }
 
-function view(items: Observable<Item[]>) {
-    const hash$ = items.map(x => makeHashGroup(x, 'id')).shareReplay(1)
-    const _listItem = (item: Item) => listItem({ item, hash$ })
-
-    return div([
-        items.switchMap(list => Observable.from(list)
-            .observeOn(Scheduler.async)
-            .map(_listItem)
+function view(list$: Observable<Item[]>) {
+    return ul([
+        list$.switchMap(list => Observable.from(list)
+            .map(ListItem)
             .toArray(),
         ),
     ])
 }
 
-const step$ = Observable.timer(0, 1000).take(10).shareReplay(1)
-const reducer$ = model({ step$ })
-const state$ = store(reducer$, [])
-const tree = view(state$)
+function createItem(n: number) {
+    return { id: n, content: `content ${n}` }
+}
 
-const proxy = (value: Observable<any>) => value
-    .distinctUntilChanged()
-    .observeOn(Scheduler.animationFrame)
-    .subscribeOn(Scheduler.animationFrame)
+const step$ = Observable.timer(0, 1000).take(11).shareReplay(1)
 
-mount(tree, document.body, { proxy })
-state$.subscribe(console.log)
+const items$ = step$.map(createItem)
+    .scan((list, item) => [...list, item], [])
+    .shareReplay(1)
+
+mount(view(items$), document.body)
