@@ -27,7 +27,7 @@
     "@types/node": "^9.3.0",
     "awesome-typescript-loader": "^3.4.1",
     "gzip-size-cli": "^2.1.0",
-    "jest": "^22.0.5",
+    "jest": "^22.1.1",
     "npm-run-all": "^4.1.2",
     "rimraf": "^2.6.2",
     "rollup": "^0.54.0",
