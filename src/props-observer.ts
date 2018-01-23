@@ -2,7 +2,7 @@ import { Hash } from '@cotto/utils.ts'
 import { isObs, subscribe, PartialObservable, Observable } from './observable'
 import { VElementNode, VSVGNode } from './vnode'
 import { toKebabCase } from './utils'
-import { setEventListeners } from './eventlistener'
+import { setEventListeners, EventListenerEnhancer } from './eventlistener'
 
 export type BareValue = string | number | null | undefined | boolean
 
@@ -10,6 +10,7 @@ export type ObserveValue = BareValue | Observable<BareValue> | PartialObservable
 
 export interface PropsObserverContext {
     proxy: (value: Observable<any>) => Observable<any>
+    enhancer: EventListenerEnhancer
 }
 
 function makePatch(patch: (el: HTMLElement | SVGElement, value: BareValue, key: string, isSVG: boolean) => void) {
@@ -68,7 +69,7 @@ export function setElementProps(vnode: VElementNode | VSVGNode, _: any, ctx: Pro
         } else if (name === 'data') {
             patchDataset(vnode, value, name, isSVG, ctx)
         } else if (name === 'on') {
-            setEventListeners(el, value)
+            setEventListeners(el, value, ctx.enhancer)
         } else {
             patchAttr(vnode, value, name, isSVG, ctx)
         }

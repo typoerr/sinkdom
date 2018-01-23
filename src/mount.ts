@@ -23,18 +23,20 @@ import {
     createFrangment,
     createPlaceholder,
 } from './dom'
-import { invokeNodeHook, hasHook } from './lifecycle'
-import { attach, proxy, createTreeWalker, createQueue, defer, cond } from './utils'
-import { setElementProps, setSVGProps, PropsObserverContext } from './props-observer'
-import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
-import { Hook, hookInvoker as globalHookInvoker } from './hook'
 import { Observable } from './observable'
+import { attach, proxy, createTreeWalker, createQueue, defer, cond } from './utils'
+import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
+import { setElementProps, setSVGProps, PropsObserverContext } from './props-observer'
+import { EventListenerEnhancer } from './eventlistener'
+import { Hook, hookInvoker as globalHookInvoker } from './hook'
+import { invokeNodeHook, hasHook } from './lifecycle'
 
 type Parent = VNode | null
 type Context = NodeObserverContext & PropsObserverContext
 
 export interface MountOptions {
     hook?: Hook[]
+    handleEventWith?: EventListenerEnhancer
     proxy?(observable: Observable<any>): Observable<any>
 }
 
@@ -98,6 +100,7 @@ export function mount(tree: VNode, container: HTMLElement = document.body, optio
         dispose: (vnode: VNode) => disposedCallbackQueue.enqueue(dispose.bind(null, vnode, null, context)),
         proxy: options.proxy || identity,
         onpatch: processCallbacks,
+        enhancer: options.handleEventWith || identity,
     }
 
     tree = activate(tree, null, context)
