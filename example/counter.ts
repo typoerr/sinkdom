@@ -1,5 +1,5 @@
 import { Observable, Scheduler, Subject } from 'rxjs'
-import { mount, div, ul, li, h1, h2, button, span } from '../src/index'
+import { mount, div, h1, button, span } from '../src/index'
 
 const shallowEq = require('shallowequal')
 

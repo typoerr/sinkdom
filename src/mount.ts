@@ -23,13 +23,13 @@ import {
     createFrangment,
     createPlaceholder,
 } from './dom'
-import { invokeNodeHook, hasHook } from './lifecycle'
-import { attach, proxy, createTreeWalker, createQueue, defer, cond } from './utils'
-import { EventListenerEnhancer } from './eventlistener'
-import { setElementProps, setSVGProps, PropsObserverContext } from './props-observer'
-import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
-import { Hook, hookInvoker as globalHookInvoker } from './hook'
 import { Observable } from './observable'
+import { attach, proxy, createTreeWalker, createQueue, defer, cond } from './utils'
+import { observeNode, unsubscribes, NodeObserverContext } from './node-observer'
+import { setElementProps, setSVGProps, PropsObserverContext } from './props-observer'
+import { EventListenerEnhancer } from './eventlistener'
+import { Hook, hookInvoker as globalHookInvoker } from './hook'
+import { invokeNodeHook, hasHook } from './lifecycle'
 
 type Parent = VNode | null
 type Context = NodeObserverContext & PropsObserverContext
