@@ -7,22 +7,26 @@ export type EventMap =
     | {[K in keyof SVGElementEventMap]?: EventListener<SVGElementEventMap, K> }
     | { [k: string]: EventListener<{ [k: string]: Event }, any> }
 
+export interface EventListenerEnhancer {
+    (listener: (event: Event) => any): (event: Event) => any
+}
+
 const _cache = new WeakMap<object, Function>()
 
-export function getCachedEventListener(subject: Subject<Event>, cache = _cache) {
-    let listener = cache.get(subject)
+export function getCachedEventListener(target: EventListener<any, any>, enhancer: EventListenerEnhancer, cache = _cache) {
+    let listener = cache.get(target)
     if (typeof listener !== 'function') {
-        listener = (ev: Event) => subject.next(ev)
-        cache.set(subject, listener)
+        const fn = isSubject(target) ? target.next.bind(target) : target
+        listener = enhancer(fn)
+        cache.set(target, listener)
     }
     return listener
 }
 
-export function setEventListeners(el: Element, eventmap: EventMap) {
+export function setEventListeners(el: Element, eventmap: EventMap, enhancer: EventListenerEnhancer) {
     for (const event in eventmap) {
         let listener: any = (eventmap as any)[event]
-        listener = isSubject(listener) ? getCachedEventListener(listener) : listener
+        listener = getCachedEventListener(listener, enhancer)
         el.addEventListener(event, listener)
     }
 }
-

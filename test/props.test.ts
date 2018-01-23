@@ -127,6 +127,17 @@ describe('eventlistener', () => {
         (tree.node as HTMLElement).click()
         unmount()
     })
+
+    test('with listenerProxy', () => {
+        const listener = jest.fn()
+        const enhancer = jest.fn((x: any) => x)
+        const tree = div({ on: { click: listener } })
+        const unmount = mount(tree, undefined, { handleEventWith: enhancer });
+        (tree.node as HTMLDivElement).click()
+        expect(listener.mock.calls[0][0]).toBeInstanceOf(Event)
+        expect(enhancer).toBeCalledWith(listener)
+        unmount()
+    })
 })
 
 //
