@@ -53,6 +53,7 @@
     "clean": "run-p clean:**",
     "clean:dist": "rimraf dist",
     "clean:es": "rimraf es",
+    "clean:example": "rimraf example/index.bundle.js",
     "lint": "tslint src/**/*.ts",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "example": "webpack-dev-server --config ./example/webpack.config.js",
