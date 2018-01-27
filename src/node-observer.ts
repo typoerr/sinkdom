@@ -44,7 +44,7 @@ class NodeObserver {
             insertBefore($parent, next.node!, $placeholder.nextSibling)
             host.children = next.children
         } else if (curCh.length === 1 && nextCh.length === 1) {
-            const cur = curCh[0]
+            let cur = curCh[0]
             let next = nextCh[0]
             if (isVTextNode(cur) && isVTextNode(next)) {
                 /* patch text to text */
@@ -53,6 +53,7 @@ class NodeObserver {
             } else if (!isSameKey(cur, next)) {
                 /* patch single slot element */
                 next = nextCh[0] = ctx.activate(next)
+                cur = curCh[0] = toReusedNode(cur)
                 replaceElement($parent, next as VElementNode, cur as VElementNode, ctx.dispose)
                 host.children = nextCh
             }
@@ -175,15 +176,15 @@ function removeNodeInRange(parent: Node, list: VNode[], startIdx: number, endIdx
 
 function removeElement(parent: Node, cur: VElementNode, dispose: Function) {
     return invokeNodeHook('remove', cur, () => {
-        dispose(cur)
         removeChild(parent, cur.node!)
+        dispose(cur)
     })
 }
 
 function replaceElement(parent: Node, next: VElementNode, cur: VElementNode, dispose: Function) {
     return invokeNodeHook('remove', cur, () => {
-        dispose(cur)
         replaceChild(parent, next.node!, cur.node!)
+        dispose(cur)
     })
 }
 
